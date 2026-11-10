@@ -5,7 +5,7 @@ import ganache from 'ganache';
 import { BrowserProvider, Contract, ContractFactory, JsonRpcProvider, id } from 'ethers';
 
 test('pinned Base-native-USDC fork: exact entry, steward settlement and participant-only refund', { timeout: 180000 }, async t => {
-  const rpc = process.env.BASE_RPC_URL || 'https://base-rpc.publicnode.com';
+  const rpc = process.env.BASE_RPC_URL || 'https://mainnet.base.org';
   const token = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
   const abi = [
     'function masterMinter() view returns(address)',

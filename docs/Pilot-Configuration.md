@@ -30,8 +30,9 @@ settlement was signed. Before a live-money launch:
 
 1. Reproducible artifacts, exact constructor/roster manifest and deployment gas
    estimate within cap; explicit signing in the authorized deployment wallet.
-2. Base-native-USDC fork/compatibility validation and deployed-bytecode/source
-   verification; token pause/blacklist/upgrade risks disclosed.
+2. Deployed-bytecode/source verification and token pause/blacklist/upgrade risk
+   disclosure. Native-USDC compatibility passed on a local fork at Base block
+   55819909 (entry, settlement, owner claim and shutdown refund); no live writes.
 3. Reviewed frontend approval/join/claim/admin proposal/cancellation flows,
    with wallet/network/code/receipt checks. Current frontend has none enabled.
 4. An operator protocol for gathering/reviewing results, disputes and refunds.

@@ -2,7 +2,7 @@
   "name": "dlang-trial-contract-tests",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test trial.test.mjs", "prepare": "node prepare.mjs", "test:base-fork": "node --test base-fork.test.mjs" },
+  "scripts": { "test": "node --test trial.test.mjs", "prepare": "node prepare.mjs", "test:base-fork": "node --test --test-timeout=90000 base-fork.test.mjs" },
   "devDependencies": {
     "ethers": "6.17.0",
     "ganache": "7.9.2",

@@ -23,7 +23,7 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
 
 **Payments remain disabled.** Local clocks, answers and history are editable,
 not financial evidence. The [trial escrow source](docs/Trial-Contract.md) is not
-deployed or mainnet-ready. Trusted review, Base-USDC compatibility, deployment
+deployed or mainnet-ready. Trusted review, deployment
 verification and real transaction-flow acceptance are launch gates. No Supporter
 token has been minted; no token purchase link is invented. Voice/LiveKit is
 future work, not implemented.
@@ -38,12 +38,23 @@ npm start
 npm test
 npm ci --prefix contract-tools --ignore-scripts
 npm run test:contracts
+npm run prepare --prefix contract-tools
+npm run test:base-fork --prefix contract-tools
 ```
 
 Default preview: `http://127.0.0.1:8888/`. `PORT` and `HOST` may select another
 loopback port. Browser tests need Playwright Chromium already available, or
 `npx playwright install chromium` after a missing-browser failure. Contract tests
 run entirely on local Ganache; no chain writes or private keys.
+
+The optional fork test reads public Base state and sends transactions only to
+local Ganache. It passed against native USDC at Base block 55819909 for entry,
+settlement, owner claim and shutdown refund. `BASE_RPC_URL` can select an RPC;
+the official Base endpoint worked after PublicNode archive/cache requests blocked
+the first attempt. Preparation creates ignored compiler artifacts and an unsigned
+transaction review in `contract-tools/build/`; it never signs or broadcasts.
+The L2 fee estimate excludes L1 data fees and is not the full deployment quote.
+See [pilot configuration](docs/Pilot-Configuration.md) for the remaining gates.
 
 `public/` is the complete static frontend. Static hosting needs no signing secret
 or private registry; eligibility loads the reviewed public pilot snapshot only
