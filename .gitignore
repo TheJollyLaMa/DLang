@@ -1,0 +1,8 @@
+node_modules
+contract-tools/node_modules/
+contract-tools/build/
+_site/
+*.log
+.env
+.env.*
+.DS_Store

@@ -1,0 +1,15 @@
+{
+  "name": "dlang",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Visual observation and multilingual language practice",
+  "license": "Apache-2.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/*.test.cjs",
+    "test:contracts": "npm test --prefix contract-tools"
+  },
+  "dependencies": { "ethers": "6.17.0" },
+  "devDependencies": { "playwright": "1.64.1" }
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>DLang · the observation week</title>
+  <link rel="stylesheet" href="./dlang/style.css">
+</head>
+<body>
+<a href="#main" class="skip">Skip to observation week</a>
+<decent-header></decent-header>
+<main id="main">
+  <p class="eyebrow">DLang · notice, name, narrate</p>
+  <section class="hero">
+    <div><h1>A week of<br><em>looking closer.</em></h1><p>Seven little worlds. Twelve discoveries a day.<br>Find something worth telling a story about.</p></div>
+    <div class="seal" aria-hidden="true">◉<span>NOTICE<br>NAME<br>NARRATE</span></div>
+  </section>
+  <aside class="notice"><strong>LOCAL PREVIEW · REAL PAYMENTS DISABLED</strong><p>Designed for a future $1 weekly buy-in. No deposit, approval, signature, transfer or contract. Browser answers, clocks, wallet display gates and records are editable — never trusted financial authority.</p></aside>
+  <nav class="tabs" aria-label="Observation areas"><button id="study-tab" aria-pressed="true">Explore &amp; study</button><button id="week-tab" aria-pressed="false">My observation week</button><button id="about-open">About DLang</button><button id="rabbit-open" class="rabbit-launch"><img src="./dlang/art/rabbit.svg" alt="" width="30" height="30">Follow the white rabbit</button></nav>
+  <p id="dlang-status" role="status" aria-live="polite"></p>
+  <section class="round card" aria-labelledby="round-heading">
+    <div><p class="eyebrow">THE FIRST WEEK · LEVEL 1</p><h2 id="round-heading">Upcoming round</h2><p id="schedule"></p><p id="countdown"></p></div>
+    <div><p id="wallet-state">Wallet optional for study · not connected</p><button id="check-pilot">Check connected contributor eligibility</button><p id="pilot-status">Pilot enrollment requires an explicit check against the reviewed DLang pilot snapshot. No automatic authorization or live registry synchronization.</p><label>Weekly answer language <select id="language" aria-label="Weekly answer language"></select></label><button id="enroll">Enroll locally · $0 charged</button><p id="enrollment"></p><button disabled>Real $1 buy-in unavailable</button></div>
+  </section>
+  <section id="study" class="card">
+    <div class="section-top"><div><p class="eyebrow">A FIELD GUIDE, NOT A FLASHCARD DECK</p><h2>Explore before Go</h2></div><label>Scene <select id="scene-select"></select></label></div>
+    <p>The same twelve concepts recur in seven distinct scenes and visual versions. Every appearance is an original SVG exemplar. Select a scene object to reveal its labels in all selected languages. <strong>Seed translations: fluent-speaker review pending.</strong></p>
+    <fieldset id="study-languages"><legend>Simultaneous study languages (choose any supported set)</legend></fieldset>
+    <p class="language-policy">Hindi uses Devanagari. Mandarin uses Simplified Chinese with pinyin shown for study; <strong>scored Mandarin answers require Chinese characters, not pinyin</strong>. All five packs are seed content pending fluent-speaker review.</p>
+    <button id="study-zoom" aria-pressed="false">Magnify scene · scroll to explore</button>
+    <div id="study-scene" class="scene" tabindex="0" aria-label="Study scene viewport"></div>
+    <div id="study-labels" class="labels" aria-live="polite"></div>
+    <details><summary>Accessible object list / larger touch controls</summary><div id="study-objects" class="object-list"></div></details>
+    <p id="exemplar-note"></p><button id="recognition">Try a fresh exemplar</button><p id="recognition-status" role="status"></p>
+  </section>
+  <section id="week" class="card" tabindex="-1" hidden>
+    <p class="eyebrow">ONE ATTEMPT · EXPLICIT GO · 120 SECONDS</p><h2>Today’s observation</h2>
+    <p id="daily-state"></p><p id="daily-cutoff"></p><button id="go" disabled>Go · start my 120 seconds</button>
+    <div id="attempt" hidden><div class="section-top"><h3 id="daily-title"></h3><p id="timer" role="timer" aria-label="Time remaining"></p></div><button id="daily-zoom" aria-pressed="false">Magnify scene · scroll to explore</button><div id="daily-scene" class="scene" tabindex="0" aria-label="Daily scene viewport"></div><details><summary>Keyboard / touch object list (numbered, no answers)</summary><div id="daily-objects" class="object-list"></div></details><form id="answer-form"><label id="answer-label" for="answer">Select an object, then type its name</label><input id="answer" autocomplete="off" maxlength="100"><button>Check name</button></form><p id="answer-status" role="status"></p><button id="finish">Finish this attempt early</button></div>
+    <div id="finishline" class="finishline" hidden tabindex="-1"><span aria-hidden="true">✦ ✧ ✦</span><h3 id="finish-heading">FinishLine · you noticed something new</h3><p id="finish-result"></p></div>
+    <label>Observation story — separate, private and never graded<textarea id="story" maxlength="4000" rows="4" placeholder="What did you notice? What might happen next?"></textarea></label><label>Story day <select id="story-day"></select></label><button id="save-story">Save story locally</button>
+    <p>Missed days score zero. Daily boundaries use the configured round timezone, not your browser timezone. A late Go is capped at day turnover. Reload resumes the same deadline; it never grants a second attempt.</p>
+  </section>
+  <section class="card economics"><p class="eyebrow">DESIGNED FOR $1 · NOT A FINANCIAL SERVICE</p><h2>A shared commitment, not a payment button.</h2><p>84 equally weighted object answers. Qualifying requires <strong>76/84</strong>; 75/84 does not qualify. Stories do not affect scores. Qualified friends recover their own $1 principal plus equal shares of forfeitures and prior carryover. If nobody qualifies, all forfeitures and carryover roll forward.</p><p>Integer-cent illustration only: <span id="ledger-example"></span> Remainders are explicitly unresolved, not silently awarded. Asset/network, fees/custody, dust, cancellation/refunds, outages/disputes, trusted scoring and settlement/security review must be resolved before activation.</p><p>Level 1 is the only content candidate. Future $2 / $3 harder levels are reserved architecture, <strong>not active curricula or offers</strong>.</p></section>
+  <footer><button id="history-open">Personal history · right ankh</button><button id="admin-open">Pilot admin · left ankh</button><a href="https://github.com/TheJollyLaMa/DLang">DLang source</a><p>Original DLang SVG scenes · CC BY 4.0 · The Jolly LaMa / A Decent Agency, 2026. No copied magazine or proprietary lesson assets. No measured learning-outcome claim.</p></footer>
+</main>
+<dialog id="about-dialog" class="editorial-dialog" aria-labelledby="about-title">
+  <button class="dialog-close" data-close aria-label="Close About">✕</button>
+  <p class="eyebrow">DLANG · A DECENT AGENCY</p>
+  <div class="about-opening"><div><h2 id="about-title">A small world.<br><em>More ways to see.</em></h2><p class="about-lead">DLang is a working title for a gentler language practice: notice what is there, name it together, tell a story.</p></div><img class="about-rabbit" src="./dlang/art/rabbit.svg" alt="The white rabbit carries a little observation clock" width="160" height="160"></div>
+  <img class="about-notebook" src="./dlang/art/notebook.svg" alt="An original notebook illustration connects observation across scripts and languages" width="720" height="300">
+  <section><p class="eyebrow">NOTICE · NAME · NARRATE</p><h3>One scene, many voices.</h3><p>Seven original seek-and-find scenes, twelve recurring concepts and fresh visual versions. Explore freely; keep several languages beside the same object. Then practice recognition in a different scene.</p><p id="about-languages"></p><p>Hindi is written in Devanagari; Mandarin Simplified includes pinyin as a reading aid. All translations and aliases are <strong>seed content awaiting fluent-speaker review</strong>. No learning, retention or pronunciation improvement has been measured.</p><button id="about-rabbit" class="rabbit-launch"><img src="./dlang/art/rabbit.svg" alt="" width="32" height="32">Start the white rabbit tutorial</button></section>
+  <section><p class="eyebrow">A PRIVATE LITTLE NOTEBOOK</p><h3>Your observations belong to you.</h3><p>Stories are never graded. The right ankh holds your local profile and history. Optional self-entered ENS and Discord links do not establish ownership. No background identity lookups, remote profile images, OAuth tokens or public uploads.</p></section>
+  <section class="about-safety"><p class="eyebrow">REAL PAYMENTS DISABLED</p><h3>Commitment is a design, not an activated buy-in.</h3><p>The local preview models a future real $1 weekly commitment on Base mainnet with steward-reviewed scores. No wallet approval, signature, transfer, funded contest or financial readiness is offered here. Local records are editable and not financial authority. Settlement and security gates still apply.</p><p><strong>Supporter token: future/planned, not yet minted.</strong> No DLang listing, purchase or mint is available. You can support the work today with language review, accessibility feedback and contributions in the public repository.</p><p>Future harder $2/$3 levels, voice and dialect features remain plans. No LiveKit implementation, Duolingo client or historical watcher is active.</p></section>
+  <section><p class="eyebrow">COME BUILD SOMETHING DECENT</p><h3>Meet the people behind the practice.</h3><div class="community-links"><a href="https://github.com/TheJollyLaMa/DLang" target="_blank" rel="noopener noreferrer">DLang source code ↗</a><a href="https://discord.gg/SCtcBggHPa" target="_blank" rel="noopener noreferrer">A Decent Agency Discord ↗</a></div><p class="quiet">Invite verified against Discord’s public invite endpoint as “A Decent Agency” on November 10, 2026. Opening an external link is your choice and shares navigation with that service. No automatic connection or membership verification.</p></section>
+  <p class="quiet">Original DLang illustrations © 2026 The Jolly LaMa / A Decent Agency · CC BY 4.0. Code Apache-2.0. No copied proprietary lesson art.</p>
+</dialog>
+<dialog id="history-dialog" class="personal-dialog" aria-labelledby="personal-title"><button class="dialog-close" data-close aria-label="Close personal notebook">✕</button><p class="eyebrow">PERSONAL · LOCAL · YOUR CHOICE</p><h2 id="personal-title">My observation notebook</h2>
+  <div class="identity-heading"><img id="identity-image" src="./dlang/art/rabbit.svg" alt="White rabbit notebook guide" width="96" height="96"><div><h3 id="identity-title">Your observation notebook</h3><p>Wallet connection is not identity verification.<br>No financial or administrator authority.</p></div></div>
+  <form id="identity-form"><label>Display name <input id="identity-name" maxlength="60" autocomplete="off"></label>
+  <label>Local profile image <input id="identity-photo" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="quiet">Optional PNG/JPEG/WebP, up to 192 KiB and 2048×2048. Local preview only; no upload or remote image request.</p><button type="button" id="identity-remove-photo">Remove image from draft</button>
+  <label class="check-label"><input id="identity-consent" type="checkbox"> I consent to keeping these optional personal ENS / Discord links locally. They are self-entered and unverified.</label>
+  <label>Optional ENS name <input id="identity-ens" maxlength="100" placeholder="yourname.eth" autocomplete="off"></label><p class="quiet">Simple ASCII .eth names only in this preview. External ENS link, not an ENS resolution or wallet-ownership check. Unicode/subnames require future normalization review.</p>
+  <label>Optional Discord user ID <input id="identity-discord" maxlength="20" inputmode="numeric" placeholder="17–20 digit public user ID" autocomplete="off"></label><p class="quiet">No password, access token or login code. This creates a link, not a verified Discord account connection. Bot/OAuth verification is unavailable.</p>
+  <label class="check-label"><input id="identity-remember" type="checkbox"> Remember this profile and chosen image in this browser</label>
+  <div class="profile-actions"><button>Save personal profile</button><button type="button" id="identity-clear">Clear personal profile</button></div></form>
+  <div id="identity-links" class="community-links"></div><p id="identity-status" role="status" aria-live="polite"></p>
+  <button id="profile-rabbit" class="rabbit-launch"><img src="./dlang/art/rabbit.svg" alt="" width="28" height="28">White rabbit orientation</button>
+  <section class="history-section"><h3>Personal local history</h3><p>Editable preview records, not financial evidence. Stories remain separate from grading. History export does not include your optional personal identity profile or image.</p><div id="history"></div><button id="export-history">Export local history &amp; stories</button></section><button data-close>Close</button></dialog>
+<dialog id="rabbit-dialog" class="rabbit-dialog" aria-labelledby="rabbit-title"><button class="dialog-close" data-close aria-label="Close tutorial">✕</button><img src="./dlang/art/rabbit.svg" alt="White rabbit guide" width="100" height="100"><p id="rabbit-progress" class="eyebrow"></p><h2 id="rabbit-title"></h2><p id="rabbit-body"></p><div class="tutorial-controls"><button id="rabbit-back">Previous hop</button><button id="rabbit-next">Next hop</button></div><button id="rabbit-try">Try this in the study scene</button><p class="quiet">Leave whenever you like. This orientation never starts a timer, connects a wallet or charges money.</p></dialog>
+<dialog id="admin-dialog"><h2>Pilot administration</h2><p>This panel grants no authority. A connected or whitelisted wallet is not an administrator or settlement authorization.</p><p>Scheduled preview: first Monday November 16, 2026 at 09:00 through Sunday November 22 at 18:00 America/New_York; repeats weekly at those local times. Tuesday–Sunday open at midnight. Enrollment closes Monday at 09:00. No funded/active contest is implied.</p><p>Explicit configuration lives in <code>prep/dlang/round.json</code>: IANA timezone, cutoff instant, eight offset-bearing day boundaries, recurrence, concept policy, unique round id and level 1. Missing/invalid configuration makes the round unavailable. No browser control activates payments.</p><pre id="admin-config"></pre><p>Public-source checks are read-only and fail closed. No private roster is bundled or published. If the registry is unavailable, study remains accessible; pilot enrollment is unavailable.</p><button data-close>Close</button></dialog>
+<script type="module" src="./dlang/app.mjs"></script>
+</body>
+</html>

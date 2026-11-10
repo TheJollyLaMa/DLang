@@ -1,0 +1,19 @@
+{
+  "id": "dlang-pilot-preview-v1",
+  "timezone": "America/New_York",
+  "enrollmentCutoff": "2026-11-16T09:00:00-05:00",
+  "dayStarts": [
+    "2026-11-16T09:00:00-05:00",
+    "2026-11-17T00:00:00-05:00",
+    "2026-11-18T00:00:00-05:00",
+    "2026-11-19T00:00:00-05:00",
+    "2026-11-20T00:00:00-05:00",
+    "2026-11-21T00:00:00-05:00",
+    "2026-11-22T00:00:00-05:00",
+    "2026-11-22T18:00:00-05:00"
+  ],
+  "repeatWeekly": true,
+  "conceptPolicy": "recurring-12",
+  "level": 1,
+  "note": "Configured local preview only, not a funded/active contest. Monday 09:00 to Sunday 18:00 New York, repeating weekly. Tuesday–Sunday open at midnight. Enrollment closes Monday 09:00. Same twelve concepts, seven original scenes. Payments remain disabled."
+}

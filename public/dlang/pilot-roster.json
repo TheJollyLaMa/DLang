@@ -1,0 +1,18 @@
+{
+  "format": "dlang-reviewed-pilot-roster",
+  "version": 1,
+  "authorization": false,
+  "maximumEntrants": 8,
+  "members": [
+    { "label": "TheJollyLaMa", "walletAddress": "0x807061DF657A7697c04045dA7d16D941861cAABc" },
+    { "label": "withinthevacuum", "walletAddress": "0x405Bb3Cdf23833bb27BAD6629b7cd4f01688235f" },
+    { "label": "joseacabrerav", "walletAddress": "0x29185eB8cfD22Aa719529217bFbadE61677e0Ad2" },
+    { "label": "GrannyLyn", "walletAddress": "0xF18E19c537a7A99571Bc3F8cef81DCBCaea7c3AE" },
+    { "label": "Bobdub", "walletAddress": "0xde21D925ee48fFAeD8939AE8B75dD6E82310f8Ea" }
+  ],
+  "evidence": [
+    "https://github.com/TheJollyLaMa/DecentBusking/blob/5570b52d8571e4ec8e5f8a9dd79c894b2e03d67b/contributor-accounts.json",
+    "https://github.com/TheJollyLaMa/BigNuten_Vanilla/blob/6f85f59f297ab777bf18cefa970bebb919d5d7c9/contributor-accounts.json"
+  ],
+  "note": "Reviewed pilot snapshot, not live registration sync. GrannyLyn and Bobdub explicitly added by steward for DLang; no change to other apps' registration. Bobdub address supplied directly by steward. Client display gate only; not wallet-control, admin or financial authorization."
+}

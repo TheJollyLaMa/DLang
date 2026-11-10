@@ -1,0 +1,11 @@
+DLang
+Copyright 2026 The Jolly LaMa / A Decent Agency contributors.
+
+DLang is an independent visual language-learning application.
+Code is Apache-2.0; original scene artwork and written creative material
+are CC BY 4.0 unless otherwise marked. See LICENSE and LICENSES/.
+
+Selected foundation code was adapted from earlier experimental source.
+Required upstream attribution is preserved in LICENSES/BabelBet-NOTICE.txt.
+This attribution describes source provenance, not product affiliation.
+Vendored libraries retain their own licenses and notices.
