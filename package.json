@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test test/*.test.cjs",
+    "build:library": "node scripts/build-library.mjs",
     "test:contracts": "npm test --prefix contract-tools"
   },
   "dependencies": { "ethers": "6.17.0" },

@@ -31,6 +31,38 @@ export const SCENES = settings.map(([title, sky, ground, accent, variant], day) 
   })
 }));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function extraObject(concept, design, color) {
+  const wood = ['#b58965', '#788b80', '#b28c87', '#b9a17c'][design % 4];
+  const shape = design % 4;
+  const shapes = {
+    bed: `<path d="M5 18V92M95 35V92M5 66H95V80H5Z" fill="${wood}"/><path d="M9 35H90V66H9Z" fill="${color}"/><rect x="12" y="37" width="25" height="22" rx="${4 + shape * 3}" fill="#f7edce"/><path d="M43 40V65M62 40V65" stroke="#fff4cc"/>`,
+    sofa: `<rect x="8" y="20" width="84" height="50" rx="${5 + shape * 5}" fill="${color}"/><path d="M2 45H18V62H82V45H98V85H2Z" fill="${wood}"/><path d="M12 85V97M87 85V97M50 24V62" fill="none"/>`,
+    door: `<path d="M14 4H86V98H14Z" fill="${wood}"/><rect x="24" y="14" width="48" height="${30 + shape * 7}" rx="${shape * 4}" fill="${color}"/><circle cx="76" cy="59" r="4" fill="#f6db85"/>`,
+    window: `<rect x="5" y="6" width="90" height="88" rx="${shape * 6}" fill="#c5e8e4"/><path d="M50 7V94M6 50H94" stroke="${wood}" stroke-width="8"/><path d="M4 96H97" stroke-width="8"/>`,
+    bottle: `<path d="M36 3H64V30Q88 37 83 92H17Q12 38 36 30Z" fill="${color}"/><path d="M37 9H63M24 55H77M23 77H78" stroke="#f8eaca" stroke-width="${3 + shape}"/>`,
+    bowl: `<ellipse cx="50" cy="35" rx="45" ry="${12 + shape * 2}" fill="#e6c6a1"/><path d="M5 35Q14 98 50 91Q88 98 95 35Z" fill="${color}"/><path d="M14 48Q50 67 86 48" fill="none"/>`,
+    plate: `<ellipse cx="50" cy="50" rx="46" ry="${30 + shape * 4}" fill="${color}"/><ellipse cx="50" cy="50" rx="32" ry="${20 + shape * 3}" fill="#f4e3bf"/>`,
+    spoon: `<ellipse cx="50" cy="24" rx="${17 + shape * 2}" ry="23" fill="${wood}"/><path d="M45 45H55L58 96H42Z" fill="${color}"/>`,
+    fork: `<path d="M22 4V36Q50 59 78 36V4M40 4V38M60 4V38M50 48V98" fill="none" stroke="${wood}" stroke-width="${5 + shape}"/>`,
+    knife: `<path d="M30 2Q85 18 61 59H37Z" fill="#c8dad6"/><path d="M37 59H61V99H37Z" fill="${wood}"/>`,
+    apple: `<path d="M50 24Q7 -2 6 50Q10 100 48 88Q91 104 96 53Q96 4 50 24Z" fill="${color}"/><path d="M50 25L57 3Q84 0 78 15L56 19" fill="#65884f"/>`,
+    banana: `<path d="M12 7Q30 69 93 47Q73 112 31 88Q1 67 12 7Z" fill="#e6ca61"/><path d="M15 19Q28 87 85 57" fill="none"/>`,
+    carrot: `<path d="M23 22H79L45 100Z" fill="#d58c45"/><path d="M46 22L20 1M50 21L53 0M55 23L84 1" stroke="#6b9657" stroke-width="7"/><path d="M29 40H62M38 61H54" fill="none"/>`,
+    bread: `<path d="M6 86V43Q-3 19 24 14Q46 -3 60 14Q98 2 96 43V86Z" fill="${wood}"/><path d="M20 78V46Q12 31 30 27Q50 14 67 28Q87 19 82 48V78Z" fill="#efcf96"/>`,
+    hat: `<path d="M19 65L27 17Q50 1 77 17L85 65Z" fill="${color}"/><ellipse cx="50" cy="71" rx="49" ry="${10 + shape * 3}" fill="${wood}"/><path d="M23 53H80" stroke="#edd3a6" stroke-width="9"/>`,
+    shoe: `<path d="M8 14H43L56 52Q92 45 97 76V91H5V59Z" fill="${color}"/><path d="M5 81H97M34 37L53 31M37 48L57 42" stroke="#edddbd" stroke-width="6"/>`,
+    bag: `<rect x="8" y="28" width="84" height="68" rx="${shape * 5 + 2}" fill="${color}"/><path d="M28 34V17Q50 -3 72 17V34" fill="none" stroke="${wood}" stroke-width="7"/><path d="M21 57H80M22 70H77" fill="none"/>`,
+    umbrella: `<path d="M3 42Q48 -36 97 42Q75 29 66 44Q51 31 34 44Q17 29 3 42Z" fill="${color}"/><path d="M50 10V84Q49 107 29 87M50 8Q27 26 34 44M50 8Q76 26 66 44" fill="none"/>`,
+    dog: `<path d="M21 44H70L89 23L97 41L85 60V87H71V65H32V88H18V52L3 25" fill="${wood}"/><path d="M69 30L68 6L84 17L94 7V40Z" fill="${color}"/><circle cx="83" cy="26" r="3"/>`,
+    fish: `<path d="M8 45Q45 -5 79 41L99 18V82L79 59Q43 107 8 55Z" fill="${color}"/><circle cx="25" cy="43" r="4"/><path d="M44 21Q34 52 47 81M52 50L68 67" fill="none"/>`,
+    boat: `<path d="M4 65H97L74 96H29Z" fill="${wood}"/><path d="M48 4V64M52 7L93 59H52Z" fill="${color}"/><path d="M43 18L11 58H43Z" fill="#f3e7c7"/>`,
+    car: `<path d="M4 48H21L34 16H70L84 48H97V80H4Z" fill="${color}"/><path d="M38 24H62L73 46H28Z" fill="#d6e5d6"/><circle cx="23" cy="80" r="13" fill="#405957"/><circle cx="78" cy="80" r="13" fill="#405957"/>`,
+    house: `<path d="M14 42H85V99H14Z" fill="${wood}"/><path d="M0 43L50 2L100 43Z" fill="${color}"/><path d="M39 60H60V99M21 52H34V69H21M69 52H81V69H69" fill="#e8e4b7"/>`,
+    bridge: `<path d="M0 31H100V49H0Z" fill="${wood}"/><path d="M10 99V49H90V99H75Q74 48 50 59Q25 51 24 99Z" fill="${color}"/><path d="M5 30V8M30 30V8M55 30V8M80 30V8M0 10H100" fill="none"/>`
+  };
+  if (!shapes[concept]) throw Error(`Missing artwork for ${concept}`);
+  return `<g stroke="#283f46" stroke-width="2.5" stroke-linejoin="round">${shapes[concept]}<path d="M${15 + shape * 4} 93h${8 + design % 7}" stroke="${color}"/></g>`;
+}
 function object(concept, v, color) {
   const wood = ['#7c4835','#c59665','#536979','#b45d41','#927c45','#64777e','#8d5b78'][v];
   const common = `stroke="#283f46" stroke-width="2.5" stroke-linejoin="round"`;
@@ -110,7 +142,10 @@ export function sceneSVG(scene, { study = false, correct = [] } = {}) {
   const targets = scene.targets.map((t, i) => {
     const [x,y,w,h] = t.box;
     const done = correct.includes(t.id);
-    return `<g class="scene-target${done ? ' found' : ''}" data-target="${t.id}" role="button" tabindex="0" aria-label="${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept])}`}${done ? ', found' : ''}" transform="translate(${x} ${y})"><title>${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept])}`}</title><svg width="${w}" height="${h}" viewBox="-8 -8 116 116" overflow="hidden">${object(t.concept,v,scene.accent)}</svg><rect class="hitbox" width="${w}" height="${h}" rx="7" fill="transparent" stroke="${done ? '#147c4b' : 'transparent'}" stroke-width="5"/></g>`;
+    const design = t.design ?? v;
+    const color = scene.library ? `hsl(${(design * 47 + CONCEPTS.indexOf(t.concept) * 29 + 360) % 360} 37% 56%)` : scene.accent;
+    const drawing = CONCEPTS.includes(t.concept) ? object(t.concept, design % 7, color) : extraObject(t.concept, design, color);
+    return `<g class="scene-target${done ? ' found' : ''}" data-target="${t.id}" role="button" tabindex="0" aria-label="${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept] || t.concept)}`}${done ? ', found' : ''}" transform="translate(${x} ${y})"><title>${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept] || t.concept)}`}</title><svg width="${w}" height="${h}" viewBox="-8 -8 116 116" overflow="hidden"><g transform="translate(50 50) rotate(${scene.library ? (design % 5 - 2) * 2 : 0}) scale(${scene.library ? .83 + (design % 8) * .022 : 1}) translate(-50 -50)">${drawing}</g></svg><rect class="hitbox" width="${w}" height="${h}" rx="7" fill="transparent" stroke="${done ? '#147c4b' : 'transparent'}" stroke-width="5"/></g>`;
   }).join('');
   return `<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${esc(scene.title)}: twelve interactive objects. Use the accessible object list below for larger controls."><rect width="1000" height="600" fill="${scene.sky}"/><rect y="235" width="1000" height="365" fill="${scene.ground}"/>${backdrops[v]}${texture}<path d="M0 245 H1000 M0 410 L1000 440" stroke="${scene.accent}" stroke-width="5" opacity=".4"/>${decor}<path d="M0 15 Q500 ${v%2 ? 175 : 80} 1000 15" fill="none" stroke="${scene.accent}" stroke-width="3"/>${Array.from({length:12},(_,i)=>`<path d="M${i*89} ${30+Math.sin(i/4)*24} l25 0 l-12 30Z" fill="${i%2 ? '#e6ab60' : '#d48391'}"/>`).join('')}<g opacity=".65"><ellipse cx="520" cy="561" rx="90" ry="12" fill="#5c6e5c"/><path d="M890 290 H976 V390 H890Z" fill="#a87e60"/><path d="M900 298 H965 M900 322 H965 M900 346 H965 M900 370 H965" stroke="#d7bb8a" stroke-width="6"/><path d="M15 365 L92 340 L98 430 L20 447Z" fill="#d9b786"/><path d="M28 378 l46 -15 M30 397 l47 -15" stroke="#7d7765" stroke-width="5"/></g>${props}${targets}</svg>`;
 }

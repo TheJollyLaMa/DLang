@@ -1,68 +1,93 @@
-import { emptyIdentity, validateIdentity, identityLinks, saveIdentity, IDENTITY_KEY, MAX_IMAGE_BYTES } from './identity.mjs';
+import { emptyIdentity, migrateIdentity, validateIdentity, saveIdentity, IDENTITY_KEY, MAX_IMAGE_BYTES, resolveArtwork } from './identity.mjs';
+import { readPractice, practiceStats } from './library.mjs';
 export function mountPersonal({ storage, report }) {
   const $ = id => document.getElementById(id);
-  let profile = emptyIdentity(), image = '';
+  let profile, address = '', artwork = {}, generation = 0;
+  const key = () => address ? `${IDENTITY_KEY}:${address.toLowerCase()}` : IDENTITY_KEY;
   function render() {
-    $('identity-name').value = profile.displayName; $('identity-ens').value = profile.ensName; $('identity-discord').value = profile.discordId;
-    $('identity-consent').checked = profile.linksConsent;
-    image = profile.avatar;
-    $('identity-title').textContent = profile.displayName || 'Your observation notebook';
-    $('identity-image').src = image || './dlang/art/rabbit.svg';
-    $('identity-image').alt = image ? 'Your chosen local profile image — not an identity verification' : 'White rabbit notebook guide';
-    $('identity-links').replaceChildren(...identityLinks(profile).map(({ label, url }) => {
-      const link = document.createElement('a'); link.textContent = label; link.href = url; link.target = '_blank'; link.rel = 'noopener noreferrer'; link.referrerPolicy = 'no-referrer';
-      return link;
-    }));
-  }
-  try {
-    const raw = storage.getItem(IDENTITY_KEY);
-    if (raw) { profile = validateIdentity(JSON.parse(raw)); $('identity-remember').checked = true; }
-  } catch { $('identity-status').textContent = 'Local profile unavailable or invalid. No external lookup or identity verification attempted.'; }
-  render();
-  $('identity-image').onerror = () => {
-    if (image) { image = ''; $('identity-image').src = './dlang/art/rabbit.svg'; $('identity-status').textContent = 'Image could not be decoded; using the local rabbit. Your identity is not verified.'; }
-  };
-  $('identity-photo').onchange = async event => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    $('identity-name').value = profile.displayName; $('identity-ens').value = profile.ensName;
+    $('identity-title').textContent = profile.displayName || artwork.ensName || (address ? `${address.slice(0, 6)}…${address.slice(-4)}` : 'Your observation notebook');
+    $('identity-image').src = profile.avatar || artwork.avatar || './dlang/art/rabbit.svg';
+    $('identity-image').hidden = false;
+    const banner = profile.banner || artwork.banner;
+    $('identity-banner').hidden = !banner;
+    if (banner) $('identity-banner').src = banner; else $('identity-banner').removeAttribute('src');
+    $('identity-wallet').textContent = address || 'Guest notebook · connect a wallet for ENS artwork';
+    $('identity-links').textContent = artwork.ensName ? `ENS: ${artwork.ensName} · forward-resolved` : '';
     try {
-      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > MAX_IMAGE_BYTES) throw Error('Choose a local PNG/JPEG/WebP up to 192 KiB. No SVG, remote image or upload.');
-      const bitmap = await createImageBitmap(file);
-      if (bitmap.width > 2048 || bitmap.height > 2048) { bitmap.close(); throw Error('Image dimensions must be at most 2048×2048.'); }
-      bitmap.close();
-      const data = await new Promise((resolve, reject) => {
-        const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(file);
-      });
-      validateIdentity({ ...emptyIdentity(), avatar: data });
-      image = data; $('identity-image').src = data;
-      $('identity-status').textContent = 'Local preview only. Save explicitly to keep this image; nothing uploaded.';
-    } catch (error) { $('identity-status').textContent = error.message || 'Image unavailable.'; }
-    finally { event.target.value = ''; }
+      const stats = practiceStats(readPractice(storage));
+      $('personal-stats').replaceChildren(...[
+        ['Sessions today', `${stats.today} / 3`], ['Practice days', stats.days], ['Objects touched', stats.touched],
+        ['Remembered', stats.remembered], ['Concepts explored', stats.concepts], ['Due for review', stats.due]
+      ].map(([label, value]) => { const item = document.createElement('div'), count = document.createElement('strong'), title = document.createElement('span'); count.textContent = value; title.textContent = label; item.append(count, title); return item; }));
+    } catch (error) { $('identity-status').textContent = error.message; }
+  }
+  function load() {
+    profile = emptyIdentity();
+    try { const raw = storage.getItem(key()); if (raw) profile = migrateIdentity(JSON.parse(raw)); }
+    catch (error) { $('identity-status').textContent = `Profile could not be loaded: ${error.message}`; }
+    render();
+  }
+  async function lookup() {
+    const current = ++generation, wallet = address, name = $('identity-ens').value.trim();
+    if (!wallet && !name) { $('identity-status').textContent = 'Connect a wallet or enter your ENS name.'; return; }
+    $('identity-status').textContent = 'Resolving ENS artwork…';
+    let provider;
+    try {
+      const { loadEthers } = await import('../vendor/decent-head/2.0.0/js/wallet.js');
+      const { JsonRpcProvider, FetchRequest } = await loadEthers();
+      const request = new FetchRequest('https://ethereum-rpc.publicnode.com'); request.timeout = 8000;
+      provider = new JsonRpcProvider(request, 1, { staticNetwork: true });
+      const result = await resolveArtwork(wallet, name, provider);
+      if (current !== generation) return;
+      artwork = result; render();
+      $('identity-status').textContent = result.ensName ? 'ENS artwork loaded. Your own images override it.' : 'No primary ENS name found. You can load your own artwork.';
+    } catch (error) { if (current === generation) $('identity-status').textContent = `ENS unavailable: ${error.message}`; }
+    finally { provider?.destroy(); }
+  }
+  for (const field of ['avatar', 'banner']) {
+    const input = $(field === 'avatar' ? 'identity-photo' : 'identity-banner-file');
+    input.onchange = async () => {
+      const file = input.files?.[0]; if (!file) return;
+      const current = generation;
+      try {
+        if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size > MAX_IMAGE_BYTES) throw Error('Choose a PNG/JPEG/WebP up to 192 KiB.');
+        const bitmap = await createImageBitmap(file);
+        const valid = bitmap.width <= 2048 && bitmap.height <= 2048; bitmap.close();
+        if (!valid) throw Error('Maximum image size is 2048 × 2048.');
+        const data = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(Error('Image read failed.')); reader.readAsDataURL(file); });
+        if (current !== generation) return;
+        const next = validateIdentity({ ...profile, [field]: data });
+        profile = saveIdentity(storage, next, key()); render();
+        $('identity-status').textContent = 'Your image is saved in this browser.';
+      } catch (error) { $('identity-status').textContent = error.message; }
+      finally { input.value = ''; }
+    };
+    $(field === 'avatar' ? 'identity-remove-photo' : 'identity-remove-banner').onclick = () => {
+      try { profile = saveIdentity(storage, { ...profile, [field]: '' }, key()); render(); $('identity-status').textContent = 'Using ENS artwork when available.'; }
+      catch (error) { $('identity-status').textContent = error.message; }
+    };
+  }
+  for (const field of ['image', 'banner']) $(`identity-${field}`).onerror = () => {
+    const image = $(`identity-${field}`);
+    if (field === 'image' && !image.src.endsWith('/dlang/art/rabbit.svg')) image.src = './dlang/art/rabbit.svg';
+    else { image.removeAttribute('src'); image.hidden = true; }
+    $('identity-status').textContent = 'Artwork could not be loaded. Load your own image or retry ENS.';
   };
   $('identity-form').onsubmit = event => {
     event.preventDefault();
-    try {
-      const candidate = validateIdentity({ version: 1, displayName: $('identity-name').value, ensName: $('identity-ens').value, discordId: $('identity-discord').value, avatar: image, linksConsent: $('identity-consent').checked });
-      profile = saveIdentity(storage, candidate, $('identity-remember').checked);
-      render();
-      $('identity-status').textContent = $('identity-remember').checked ? 'Saved only in this browser by consent. Links are self-entered, not ownership verified. No external request.' : 'Kept only in this tab; any browser profile copy removed. No external request.';
-    } catch (error) { $('identity-status').textContent = `${error.message} Not saved; any prior browser copy is unchanged.`; }
+    try { profile = saveIdentity(storage, { ...profile, displayName: $('identity-name').value, ensName: $('identity-ens').value }, key()); render(); $('identity-status').textContent = 'Profile saved in this browser.'; }
+    catch (error) { $('identity-status').textContent = error.message; }
   };
-  $('identity-consent').onchange = () => {
-    if ($('identity-consent').checked) return;
-    profile = { ...profile, ensName: '', discordId: '', linksConsent: false };
-    $('identity-links').replaceChildren(); $('identity-ens').value = ''; $('identity-discord').value = '';
-    try { saveIdentity(storage, profile, $('identity-remember').checked); $('identity-status').textContent = 'Link consent withdrawn. Personal links removed from memory and this browser copy.'; }
-    catch { $('identity-status').textContent = 'Links removed from memory. Browser storage unavailable: remove any old copy in browser settings.'; }
-  };
+  $('identity-resolve').onclick = lookup;
   $('identity-clear').onclick = () => {
-    profile = emptyIdentity(); $('identity-remember').checked = false; render();
-    try { storage.removeItem(IDENTITY_KEY); $('identity-status').textContent = 'Personal profile cleared. Weekly attempts and ungraded stories are unchanged.'; }
-    catch { $('identity-status').textContent = 'Tab profile cleared; browser storage unavailable. Remove any older copy in browser settings.'; }
-    report('Personal profile cleared; no wallet, scoring or financial authority changed.');
+    try { storage.removeItem(key()); artwork = {}; generation++; load(); $('identity-status').textContent = 'Profile cleared; practice records unchanged.'; }
+    catch (error) { report(error.message); }
   };
-  $('identity-remove-photo').onclick = () => {
-    image = ''; $('identity-image').src = './dlang/art/rabbit.svg';
-    $('identity-status').textContent = 'Image removed from this draft. Save explicitly to update any browser copy.';
-  };
+  load();
+  window.addEventListener('dlang:practice', render);
+  return { async wallet(next) {
+    generation++; address = next || ''; artwork = {}; load();
+    if (address) await lookup();
+  }, refresh: render };
 }

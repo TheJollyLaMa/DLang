@@ -4,6 +4,10 @@ import { SCENES, DESCRIPTIONS, sceneSVG } from './scenes.mjs';
 import { mountPersonal } from './personal.mjs';
 import { mountTutorial } from './tutorial.mjs';
 import { pilotEligibility } from './pilot.mjs';
+import { createStorage } from './storage.mjs';
+import { mountStorage } from './storage-ui.mjs';
+import { mountAudio } from './audio.mjs';
+import { mountPractice } from './practice.mjs';
 const $ = id => document.getElementById(id);
 const languageName = tag => LANGUAGE_NAMES[tag] || tag;
 $('language').replaceChildren(...Object.keys(PACKS).map(tag => new Option(languageName(tag), tag)), new Option('Other — unsupported in this seed preview', 'other'));
@@ -32,15 +36,20 @@ function openDialog(id) {
   dialogFocus.set(dialog, trigger);
   dialog.showModal();
 }
+const ipfs = createStorage({ storage, signer: async () => {
+  const wallet = DecentHead.getWallet().snapshot();
+  if (!wallet.connected) throw Error('Connect a wallet before using shared pinning.');
+  return wallet.provider.getSigner(wallet.address);
+} });
 globalThis.DECENT_CONFIG = {
   appName: 'DLang', subtitle: 'Notice · name · narrate',
   ens: { enabled: false }, ipfsControlsMode: 'host-only',
-  providers: { default: 'unconfigured · local records only' },
+  providers: { default: 'Decent shared IPFS · check connection' },
   theme: { accent: '#a6e2cb', 'accent-2': '#e7bc82', 'bg-1': '#112a30', 'bg-2': '#1b383e', title: '#f5eede' },
   ipfsAdapter: {
-    version: 1, label: 'DLang · local history export only',
-    capabilities: { backup: { open: () => { renderHistory(); openDialog('history-dialog'); } } },
-    getStatus: async () => ({ backup: { state: 'idle', detail: 'Export editable local history and ungraded stories. No upload, restore or IPFS durability claim.' } })
+    version: 1, label: 'DLang · your IPFS connection',
+    capabilities: { backup: { open: () => openDialog('storage-dialog') } },
+    getStatus: async () => ({ backup: ipfs.status })
   },
   about: {
     host: { version: 1, open: () => openDialog('about-dialog') },
@@ -48,15 +57,17 @@ globalThis.DECENT_CONFIG = {
     summary: 'Original scenes, multilingual observation and stories shared with friends. DLang is a local learning preview, not a financial launch.',
     sections: [
       { title: 'Notice · name · narrate', body: `Seven original seek-and-find scenes with twelve targets each. Study ${Object.keys(PACKS).map(languageName).join(', ')} together; seed translations await fluent-speaker review. Stories stay separate from the 84 equally weighted object answers. No retention or pronunciation benefit has been measured.` },
-      { title: 'A commitment, not an activated wager', body: 'Designed for future real $1 buy-ins, but payments are disabled pending transaction-flow and operator acceptance. The empty Base escrow is deployed and source-matched; no funded round was opened. This frontend offers no approvals, signatures or transfers. Exact qualification is 76/84. Local records and wallet UI are not financial authority; source verification is not a security audit.' },
+      { title: 'A commitment, not an activated wager', body: 'Designed for future real $1 buy-ins, but payments are disabled pending transaction-flow and operator acceptance. The empty Base escrow is deployed and source-matched; no funded round was opened. This frontend offers no token approvals or transfers. Shared IPFS uploads request a clearly labeled message signature, not a financial transaction. Exact weekly qualification is 76/84. Local records are not financial authority.' },
       { title: 'Honest horizons', body: 'A Supporter token is future/planned only: not minted, available or purchased here. Future $2/$3 harder levels, voice recognition, pronunciation and dialect learning are not active curricula. All Duolingo clients and legacy watchers remain disabled.' },
-      { title: 'Your records · your choice', body: 'Study is free and needs no wallet. An explicit check against the reviewed DLang pilot snapshot gates only the local pilot. Wallet connection proves neither identity nor admin authority. Attempts and ungraded stories persist in this browser; export via the right ankh. No uploads or automatic authorization or live registry synchronization.' }
+      { title: 'Your records · your choice', body: 'Three free practices per local day explore 1,095 procedural scenes. Wallet connection triggers read-only Ethereum ENS artwork lookup; own avatar/banner overrides stay local. Practice statistics and ungraded stories stay in this browser unless you explicitly publish practice history. Microphone starts only on Record. Native-speaker drafts become public CC BY 4.0 contributions only on Publish, and require steward review before voice rotation. Device speech is labeled synthesis. No live registry synchronization or speech-accuracy assessment.' }
     ]
   },
   links: [{ label: 'DLang source', url: 'https://github.com/TheJollyLaMa/DLang' }],
   relatedDapps: [{ label: 'DecentBusking', url: 'https://github.com/TheJollyLaMa/DecentBusking' }]
 };
 const { DecentHead } = await import('../vendor/decent-head/2.0.0/js/main.js');
+const report = message => { $('dlang-status').textContent = message; };
+const personal = mountPersonal({ storage, report });
 const header = document.querySelector('decent-header');
 header.addEventListener('decenthead:menu', event => {
   if (event.detail?.side === 'left') openDialog('admin-dialog');
@@ -68,6 +79,7 @@ DecentHead.on('wallet', state => {
   $('wallet-state').textContent = walletAddress ? 'Wallet connected · explicit public contributor check required' : 'Wallet optional for study · not connected';
   $('pilot-status').textContent = 'Wallet changed or disconnected: previous display eligibility cleared. No automatic authorization.';
   render();
+  void personal.wallet(walletAddress);
 });
 for (const dialog of document.querySelectorAll('dialog')) {
   dialog.querySelectorAll('[data-close]').forEach(button => { button.onclick = () => dialog.close(); });
@@ -77,8 +89,9 @@ $('about-open').onclick = () => header.openAbout();
 $('admin-open').onclick = () => openDialog('admin-dialog');
 $('history-open').onclick = () => { renderHistory(); openDialog('history-dialog'); };
 $('admin-config').textContent = JSON.stringify(config, null, 2);
-const report = message => { $('dlang-status').textContent = message; };
-mountPersonal({ storage, report });
+mountStorage({ ipfs, storage, openDialog });
+const audio = mountAudio({ ipfs, openDialog });
+mountPractice({ storage, audio, report });
 mountTutorial({ openDialog, languages: Object.keys(PACKS).map(languageName) });
 $('about-languages').textContent = Object.keys(PACKS).map(languageName).join(' · ');
 function act(operation) {
@@ -137,6 +150,8 @@ function bindObjects(container, scene, study) {
           recognition = null;
         }
         studyTarget = target.concept; renderLabels();
+        const tag = $('study-languages').querySelector('input:checked')?.value || 'en';
+        void audio.play(tag, studyTarget);
       } else {
         selectedTarget = target.id;
         $('answer-label').textContent = `Object ${scene.targets.indexOf(target) + 1} selected. Name what you see in your locked language.`;
@@ -164,7 +179,10 @@ function renderLabels() {
   $('study-labels').replaceChildren(...studyLabels(studyTarget, languages, PACKS).map(({ tag, label }) => {
     const box = document.createElement('div'), title = document.createElement('span'), word = document.createElement('strong');
     box.className = 'label'; title.textContent = languageName(tag); word.textContent = label; word.lang = tag;
-    box.append(title, word);
+    const sound = document.createElement('button'); sound.type = 'button'; sound.className = 'word-audio';
+    sound.append(word); sound.setAttribute('aria-label', `Hear ${label} in ${languageName(tag)}`);
+    sound.onclick = () => void audio.play(tag, studyTarget);
+    box.append(title, sound);
     const entry = PACKS[tag][studyTarget];
     if (entry.reading) {
       const reading = document.createElement('small'); reading.lang = entry.readingTag; reading.textContent = entry.reading; reading.className = 'reading'; box.append(reading);

@@ -24,22 +24,21 @@ test('five complete seed packs: Devanagari, Simplified Chinese and explicit piny
   assert.equal(accepted(PACKS['zh-Hans'],'lamp','台灯'),true);
   assert.equal(accepted(PACKS['zh-Hans'],'book','書'),false);
 });
-test('personal links need consent, reject secrets/unsafe URLs, never imply verification; persistence explicit',async()=>{
-  const {emptyIdentity,validateIdentity,identityLinks,saveIdentity,IDENTITY_KEY}=await import('../public/dlang/identity.mjs');
+test('clean profile migration, ENS artwork ownership, image overrides and local persistence',async()=>{
+  const {emptyIdentity,validateIdentity,migrateIdentity,resolveArtwork,saveIdentity,IDENTITY_KEY,imageURL}=await import('../public/dlang/identity.mjs');
   const map=new Map(),storage={getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};
-  const profile={...emptyIdentity(),displayName:'Observer',ensName:'observer.eth',discordId:'123456789012345678',linksConsent:true};
-  assert.throws(()=>validateIdentity({...profile,linksConsent:false}),/Consent/);
-  for(const ensName of ['javascript:alert(1)','https://example.com','bad/path.eth','<img>.eth','name.eth.evil','é.eth','sub.name.eth'])assert.throws(()=>validateIdentity({...profile,ensName}),/ASCII/);
-  for(const discordId of ['access-token','1234','https://discord.com','<script>'])assert.throws(()=>validateIdentity({...profile,discordId}),/17–20/);
+  const profile={...emptyIdentity(),displayName:'Observer',ensName:'observer.eth'};
+  for(const ensName of ['javascript:alert(1)','https://example.com','bad/path.eth','<img>.eth','name.eth.evil','é.eth'])assert.throws(()=>validateIdentity({...profile,ensName}),/ASCII/);
   assert.throws(()=>validateIdentity({...profile,secret:'token'}),/Invalid/);
-  const links=identityLinks(profile);
-  assert.deepEqual(links.map(l=>l.url),['https://app.ens.domains/name/observer.eth','https://discord.com/users/123456789012345678']);
-  assert.ok(links.every(l=>l.label.includes('not verified')));
-  assert.deepEqual(identityLinks(emptyIdentity()),[]);
-  saveIdentity(storage,profile,false);assert.equal(storage.getItem(IDENTITY_KEY),undefined);
-  saveIdentity(storage,profile,true);assert.ok(storage.getItem(IDENTITY_KEY));
-  saveIdentity(storage,emptyIdentity(),false);assert.equal(storage.getItem(IDENTITY_KEY),undefined);
-  assert.throws(()=>saveIdentity({setItem(){throw Error('quota');}},profile,true),/quota/);
+  saveIdentity(storage,profile);assert.ok(storage.getItem(IDENTITY_KEY));
+  assert.throws(()=>saveIdentity({setItem(){throw Error('quota');}},profile),/quota/);
+  assert.equal(migrateIdentity({version:1,displayName:'Old',ensName:'old.eth',linksConsent:true,avatar:''}).version,2);
+  assert.equal(imageURL('ipfs://bafyexample/a.png'),'https://ipfs.io/ipfs/bafyexample/a.png');
+  for(const value of ['javascript:alert(1)','http://evil.test/image','https://user:secret@example.com/p'])assert.throws(()=>imageURL(value));
+  const wallet='0x'+'1'.repeat(40);
+  const provider={lookupAddress:async()=> 'observer.eth',resolveName:async()=>wallet,getResolver:async()=>({getAvatar:async()=> 'https://example.org/avatar.png',getText:async key=>key==='banner'?'ipfs://bafyexample/banner.png':''})};
+  assert.deepEqual(await resolveArtwork(wallet,'',provider),{ensName:'observer.eth',avatar:'https://example.org/avatar.png',banner:'https://ipfs.io/ipfs/bafyexample/banner.png'});
+  await assert.rejects(resolveArtwork('0x'+'2'.repeat(40),'observer.eth',provider),/connected wallet/);
 });
 test('profile image whitelist forbids remote/SVG/javascript content and oversized imports',async()=>{
   const {emptyIdentity,validateIdentity}=await import('../public/dlang/identity.mjs');

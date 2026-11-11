@@ -1,7 +1,7 @@
 # DLang
 
 Notice, name, narrate. An independent visual language-learning application:
-seven original seek-and-find scenes, twelve recurring concepts and simultaneous
+original seek-and-find scenes, varied visual concepts and simultaneous
 multilingual study. DLang is not affiliated with any commercial lesson platform.
 
 ## Current availability
@@ -9,14 +9,44 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
 - English, Spanish, French, Hindi (Devanagari) and Mandarin Simplified with pinyin.
   All vocabulary/aliases are seed content, **not fluent-speaker reviewed**.
   Pinyin is a study aid; scored Mandarin answers use Chinese characters.
-- One local attempt per day, maximum 120 seconds after explicit Go. Same
+- **Free practice:** three flexible two-minute sessions per local day, 36 seed
+  concepts and 1,095 reproducible original SVG compositions. Each recipe day has
+  three different 12-object sets; due concepts prioritize order within that set.
+  Layout/order/colors and 32 object design combinations vary. No identical object
+  exemplar in the previous 21 completed practices. These are parameterized
+  compositions, not 1,095 separately painted illustrations.
+- Self-review intervals: 1/3/7/14/30/60 days; "Again" returns in ten minutes.
+  An early rehearsal does not advance the interval or postpone the due date.
+  This is a scheduling heuristic, not measured learning or pronunciation accuracy.
+- **Separate weekly preview:** seven original scenes, twelve recurring concepts,
+  one local attempt per day, maximum 120 seconds after explicit Go. Same
   deadline after reload; late starts end at the visible daily cutoff.
 - Scheduled pilot: November 16, 2026 09:00 through November 22 18:00
   America/New_York. Later weeks follow the same local schedule; Tuesday-Sunday
   open at midnight. This is a schedule, not a funded contest.
 - Contextual Head, illustrated About, reduced-motion rabbit orientation,
-  local personal profile/image, optional self-entered ENS/Discord links and history.
-  There is **no verified ENS-avatar or Discord OAuth integration**.
+  browser-local personal statistics and wallet-scoped profiles. Wallet connection
+  triggers reverse-then-forward-checked ENS artwork lookup; name/avatar/banner
+  can also be loaded explicitly. Your PNG/JPEG/WebP avatar/banner overrides stay
+  local (192 KiB each, maximum 2048 × 2048). No Discord OAuth integration.
+- Optional personal word library in the notebook dialog: import a local JSON
+  export of words you already learned elsewhere. For your own account,
+  `node scripts/fetch-duo-words.mjs` creates gitignored `data/duo-words.json`
+  from the gitignored `.env`; it paces requests over several seconds each and
+  restores your active course. The imported library is saved only in your
+  browser; never uploaded, published or graded.
+- Touch objects/words to hear reviewed community recordings in rotation, or
+  clearly labeled device speech when a matching voice is installed. Microphone
+  starts only on Record. Local IndexedDB drafts become public CC BY 4.0 IPFS
+  submissions only on Publish, followed by an explicit GitHub review link.
+  **No reviewed recordings ship initially.** No fabricated native-speaker audio.
+- IPFS: existing DecentBusking shared service, your own session-only Pinata JWT,
+  or a local Kubo API. Shared writes require the Busking service's configured
+  mint-owner wallet, not just contributor eligibility. Other learners should
+  select their own provider. Health/CORS readiness was checked live; **no signed
+  production write was performed for this release**. Public practice backups are
+  reported verified only after gateway SHA-256 matches the uploaded bytes.
+  Different local records and active practice block restore; no silent overwrite.
 - Reviewed five-member pilot snapshot includes existing Busking contributors,
   GrannyLyn and Bobdub by explicit steward direction. It is not live registration
   sync or wallet-control/financial authorization.
@@ -25,8 +55,9 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
 not financial evidence. The [empty trial escrow](docs/Trial-Contract.md) is
 deployed on Base and exactly source-matched by Sourcify. No funded round was opened.
 Trusted score/operator review and real transaction-flow acceptance remain launch gates. No Supporter
-token has been minted; no token purchase link is invented. Voice/LiveKit is
-future work, not implemented.
+token has been minted; no token purchase link is invented. LiveKit conversation
+and calibrated speech assessment remain future work. The free practice schedule
+and self-reviews do not change weekly qualification or authorize settlement.
 
 ## Run and test
 
@@ -36,6 +67,7 @@ Node 22 or later:
 npm ci --ignore-scripts
 npm start
 npm test
+npm run build:library
 npm ci --prefix contract-tools --ignore-scripts
 npm run test:contracts
 npm run prepare --prefix contract-tools
@@ -59,6 +91,39 @@ See [pilot configuration](docs/Pilot-Configuration.md) for the remaining gates.
 `public/` is the complete static frontend. Static hosting needs no signing secret
 or private registry; eligibility loads the reviewed public pilot snapshot only
 after an explicit check. Production Pages publication does not activate payments.
+
+## Shared voices and IPFS setup
+
+The voice studio handles local recording, preview, deletion and explicit public
+submission. The prefilled issue link is not sent automatically. A fluent steward
+must listen and review word/language, safe content, speaker credit, native-speaker
+declaration, duration and CC BY 4.0 permission before running:
+
+```sh
+node scripts/approve-voice.mjs --metadata-cid CID --reviewer "Public reviewer credit" --auditioned
+npm test
+```
+
+The importer fetches bounded metadata/audio and checks size, SHA-256, schema and
+duplicate CIDs before changing the local reviewed manifest. `--auditioned` is a
+human assertion, not automated pronunciation detection. Commit/publish the
+reviewed manifest to enable rotation. Do not review or publish someone else's
+voice without their permission.
+
+Use **My IPFS connection** to choose a provider and check it. Personal Pinata JWTs
+stay in tab memory and are sent only to Pinata's API, never saved in localStorage.
+For Kubo, allow this exact site origin and POST in the node's API CORS settings;
+do not expose an unauthenticated API publicly. Browser local-network permissions
+and HTTPS/mixed-content policies may prevent local access; failures remain
+visible. Gateway reads are bounded and uploads are limited to 2 MiB.
+Public backups contain practice records only, excluding profile artwork, weekly
+stories and voice drafts. Public IPFS content can persist; removal of local data
+cannot recall public copies. No upload happens without its labeled action.
+
+The materialized [year library](public/dlang/year-library.json) contains 1,095
+recipes and exact SVG SHA-256 checksums. Rebuild with `npm run build:library`;
+tests verify reproducibility, target geometry, vocabulary coverage, all checksums
+and a complete 365-day simulation for both perfect and mixed self-reviews.
 
 ## Authorized deployment operators
 
@@ -92,13 +157,24 @@ The [source notice](LICENSES/BabelBet-NOTICE.txt) is required legal provenance,
 not product affiliation.
 
 DecentHead version 2.0.0 retains vendor licenses and an explicit host About bridge.
-Busking's profile/About concepts informed local consent/link/image presentation;
-its authenticated backend is **not** integrated. Exact token balance checks adapt
+ENS patterns adapt Busking's `js/ens-client.mjs` reverse/forward ownership check
+and avatar/banner/header records. Shared upload interoperability implements the
+exact `buildUploadAuthorizationMessage` protocol in `js/ipfs-upload.js`, inspected
+at Busking commit `ab7c1dd4a25479d0b8351e42b17b8fac6c7c0221`. No Busking profile
+backend was copied: its worker/auth/storage runtime differs. The receiving app
+uses the existing hosted signing endpoint, with explicit mint-owner restrictions,
+plus independent personal providers; no speculative shared framework is extracted.
+Receiving fixtures validate the exact signature text, destination allowlist,
+credential boundaries and gateway-byte recovery; live origin preflight and health
+pass but do not establish authorized-write acceptance. Exact token balance checks adapt
 DecentEscrow's Apache-2.0 PaymentAsset; trial accounting is new and separately
 tested. No speculative shared framework is extracted.
 
 Receiving tests cover language packs, timer/weekly boundaries and DST, local
-persistence, accessibility, profile consent, About/tutorial and wallet refusal.
+persistence, accessibility, ENS/profile artwork, three-a-day practice including
+local midnight and cross-tab recovery, actual
+statistics, device speech, local microphone drafts, public-backup verification,
+provider failures, native-voice approval/rotation, About/tutorial and wallet refusal.
 Contract tests cover refunds/carry/settlement separately; see the contract guide
 for trust assumptions and remaining launch gates.
 

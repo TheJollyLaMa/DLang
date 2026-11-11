@@ -35,3 +35,35 @@ PACKS['zh-Hans'] = Object.fromEntries(additional.map(([id, , , label, reading, a
 }]));
 export const LANGUAGE_NAMES = { en: 'English', es: 'Español', fr: 'Français', hi: 'हिन्दी · Hindi', 'zh-Hans': '简体中文 · Mandarin' };
 export const LANGUAGE_TAGS = Object.freeze(Object.keys(PACKS));
+const expanded = [
+  ['bed', 'bed', 'cama', 'lit', 'बिस्तर', '床', 'chuáng'],
+  ['sofa', 'sofa', 'sofá', 'canapé', 'सोफ़ा', '沙发', 'shāfā'],
+  ['door', 'door', 'puerta', 'porte', 'दरवाज़ा', '门', 'mén'],
+  ['window', 'window', 'ventana', 'fenêtre', 'खिड़की', '窗户', 'chuānghu'],
+  ['bottle', 'bottle', 'botella', 'bouteille', 'बोतल', '瓶子', 'píngzi'],
+  ['bowl', 'bowl', 'cuenco', 'bol', 'कटोरा', '碗', 'wǎn'],
+  ['plate', 'plate', 'plato', 'assiette', 'थाली', '盘子', 'pánzi'],
+  ['spoon', 'spoon', 'cuchara', 'cuillère', 'चम्मच', '勺子', 'sháozi'],
+  ['fork', 'fork', 'tenedor', 'fourchette', 'कांटा', '叉子', 'chāzi'],
+  ['knife', 'knife', 'cuchillo', 'couteau', 'चाकू', '刀', 'dāo'],
+  ['apple', 'apple', 'manzana', 'pomme', 'सेब', '苹果', 'píngguǒ'],
+  ['banana', 'banana', 'plátano', 'banane', 'केला', '香蕉', 'xiāngjiāo'],
+  ['carrot', 'carrot', 'zanahoria', 'carotte', 'गाजर', '胡萝卜', 'húluóbo'],
+  ['bread', 'bread', 'pan', 'pain', 'रोटी', '面包', 'miànbāo'],
+  ['hat', 'hat', 'sombrero', 'chapeau', 'टोपी', '帽子', 'màozi'],
+  ['shoe', 'shoe', 'zapato', 'chaussure', 'जूता', '鞋子', 'xiézi'],
+  ['bag', 'bag', 'bolsa', 'sac', 'बैग', '包', 'bāo'],
+  ['umbrella', 'umbrella', 'paraguas', 'parapluie', 'छाता', '雨伞', 'yǔsǎn'],
+  ['dog', 'dog', 'perro', 'chien', 'कुत्ता', '狗', 'gǒu'],
+  ['fish', 'fish', 'pez', 'poisson', 'मछली', '鱼', 'yú'],
+  ['boat', 'boat', 'barco', 'bateau', 'नाव', '船', 'chuán'],
+  ['car', 'car', 'coche', 'voiture', 'कार', '汽车', 'qìchē'],
+  ['house', 'house', 'casa', 'maison', 'घर', '房子', 'fángzi'],
+  ['bridge', 'bridge', 'puente', 'pont', 'पुल', '桥', 'qiáo']
+];
+for (const row of expanded) {
+  for (const [index, tag] of LANGUAGE_TAGS.entries()) PACKS[tag][row[0]] = {
+    label: row[index + 1], aliases: [], review: 'seed — fluent-speaker review pending',
+    ...(tag === 'zh-Hans' ? { reading: row[6], readingTag: 'zh-Latn-pinyin', answerPolicy: 'Chinese characters only; pinyin study-only.' } : {})
+  };
+}

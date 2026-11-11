@@ -6,14 +6,15 @@ const { createServer } = require('../index');
 const START = Date.parse('2026-11-02T05:00:00Z');
 const ADDRESS = '0x'+'1'.repeat(40);
 const config = {id:'browser-fixture',timezone:'America/New_York',enrollmentCutoff:new Date(START).toISOString(),dayStarts:Array.from({length:8},(_,i)=>new Date(START+i*86400000).toISOString()),conceptPolicy:'recurring-12',level:1};
-async function setup(t,{width=1280,reducedMotion='no-preference',scheduled=false,eligible=true}={}) {
+async function setup(t,{width=1280,reducedMotion='no-preference',scheduled=false,eligible=true,microphone=false}={}) {
   let rosterCalls=0;
   const server=createServer({fetchRoster:async()=>{rosterCalls++;return {contributors:[{github:'fixture',walletAddress:eligible?ADDRESS:'0x'+'9'.repeat(40)}]};}});
   server.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
   const base=`http://127.0.0.1:${server.address().port}`;
-  const browser=await chromium.launch({headless:true});
+  const browser=await chromium.launch({headless:true,args:microphone?['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']:[]});
   t.after(async()=>{await browser.close();await new Promise(r=>server.close(r));});
   const context=await browser.newContext({viewport:{width,height:1000},reducedMotion,hasTouch:width===375});
+  if(microphone)await context.grantPermissions(['microphone'],{origin:base});
   const external=[],errors=[];
   await context.route('**/*',route=>{
     if(route.request().url().startsWith(base+'/'))return route.continue();
@@ -41,6 +42,146 @@ async function setup(t,{width=1280,reducedMotion='no-preference',scheduled=false
 async function screenshot(page,name){
   if(process.env.DLANG_EVIDENCE_DIR) await page.screenshot({path:path.join(process.env.DLANG_EVIDENCE_DIR,name),fullPage:true});
 }
+for(const width of [1280,375])test(`${width}px three-a-day practice: audible touch, persistence, real stats, daily cap and full library`,async t=>{
+  const {page,errors}=await setup(t,{width,reducedMotion:'reduce'});
+  await page.clock.setSystemTime(new Date(2026,0,1,12));
+  await page.evaluate(()=>{
+    window.__spoken=[];
+    window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
+    Object.defineProperty(window,'speechSynthesis',{value:{cancel(){},getVoices:()=>[{lang:'hi-IN',name:'Hindi fixture'}],speak:u=>window.__spoken.push(u.text)}});
+  });
+  assert.equal(await page.locator('#practice-scene [data-target]').count(),0);
+  await page.selectOption('#practice-language','hi');await page.click('#practice-start');
+  await page.locator('#practice-scene [data-target]').first().click();await page.click('#practice-word');
+  assert.match(await page.locator('#audio-status').textContent(),/device synthesis/);
+  assert.equal(await page.evaluate(()=>window.__spoken.length),2);
+  await page.click('#practice-remembered');
+  const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
+  await page.reload();await page.locator('#practice-scene [data-target]').first().waitFor();
+  const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
+  assert.equal(after.deadline,before.deadline);assert.deepEqual(after.outcomes,before.outcomes);
+  await page.click('#practice-finish');
+  assert.equal(await page.locator('#practice-scene [data-target]').count(),0,'completed targets cannot access a stale session');
+  for(let session=1;session<3;session++){
+    await page.click('#practice-start');await page.clock.runFor(120001);
+    await page.waitForFunction(()=>!localStorage.getItem('dlang-practice-active-v1'));
+  }
+  assert.match(await page.locator('#practice-summary').textContent(),/3 of 3.*3 completed/);
+  assert.equal(await page.locator('#practice-start').isDisabled(),true);
+  await page.click('#history-open');
+  assert.match(await page.locator('#personal-stats').textContent(),/3 \/ 3Sessions today1Practice days1Objects touched/);
+  await page.keyboard.press('Escape');
+  await page.fill('#library-day','365');await page.locator('#library-day').dispatchEvent('change');
+  await page.selectOption('#library-slot','2');
+  assert.equal(await page.locator('#library-preview [data-target^="y1094-"]').count(),12);
+  await page.locator('#library-preview [data-target]').first().click();assert.equal(await page.locator('#library-word').isDisabled(),false);
+  await page.fill('#library-day','366');await page.locator('#library-day').dispatchEvent('change');
+  assert.match(await page.locator('#dlang-status').textContent(),/1 to 365/);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth),0);
+  await screenshot(page,`dlang-year-${width}.png`);
+  assert.deepEqual(errors,[]);
+});
+test('ENS artwork resolves against connected wallet; local artwork and profile stay wallet-scoped',async t=>{
+  const {page,context,errors}=await setup(t);
+  await context.route('https://artwork.example/**',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="green"/></svg>'}));
+  const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==';
+  await page.evaluate(({png,address})=>{
+    window.ethers.FetchRequest=class{};
+    window.ethers.JsonRpcProvider=class{
+      async lookupAddress(){return'observer.eth';}async resolveName(){return address;}
+      async getResolver(){return{getAvatar:async()=>'https://artwork.example/avatar.svg',getText:async()=>'https://artwork.example/banner.svg'};}destroy(){}
+    };
+  },{png,address:ADDRESS});
+  await page.locator('decent-header wallet-connect #connect').click();
+  await page.waitForFunction(()=>document.getElementById('identity-status').textContent && !document.getElementById('identity-status').textContent.includes('Resolving'));
+  assert.match(await page.locator('#identity-status').textContent(),/ENS artwork loaded/);
+  await page.click('#history-open');
+  assert.equal(await page.locator('#identity-banner').isVisible(),true);
+  assert.match(await page.locator('#identity-links').textContent(),/observer.eth.*forward-resolved/);
+  await page.fill('#identity-name','Connected observer');await page.locator('#identity-form button:not([type])').click();
+  assert.equal(await page.evaluate(address=>JSON.parse(localStorage.getItem('dlang-personal-profile-v1:'+address.toLowerCase())).displayName,ADDRESS),'Connected observer');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('dlang-personal-profile-v1')),null);
+  assert.deepEqual(errors,[]);
+});
+test('voice microphone is explicit, draft survives reload, native/public upload is explicit, delete remains local',async t=>{
+  const {page,external,errors}=await setup(t,{microphone:true});
+  await page.click('#voice-open');await page.selectOption('#voice-language','fr');
+  assert.equal(await page.locator('#voice-publish').isDisabled(),true);
+  await page.click('#voice-record');
+  await page.waitForFunction(()=>document.getElementById('voice-record').textContent==='Stop recording');
+  await page.waitForTimeout(800);await page.clock.runFor(1000);
+  await page.click('#voice-record');
+  await page.waitForFunction(()=>!document.getElementById('voice-preview').disabled);
+  assert.deepEqual(external,[],'recording does not upload');
+  await page.reload();await page.locator('#study-scene [data-target]').first().waitFor();
+  await page.click('#voice-open');await page.selectOption('#voice-language','fr');
+  await page.waitForFunction(()=>!document.getElementById('voice-preview').disabled);
+  await page.click('#voice-publish');assert.match(await page.locator('#voice-status').textContent(),/public speaker credit/);
+  await page.fill('#voice-speaker','Test speaker');await page.click('#voice-publish');
+  await page.waitForFunction(()=>document.getElementById('voice-status').textContent.includes('Publish incomplete'));
+  assert.match(await page.locator('#voice-status').textContent(),/Connect a wallet/);
+  assert.equal(await page.locator('#voice-submission a').count(),0);
+  await page.click('#voice-delete');await page.waitForFunction(()=>document.getElementById('voice-preview').disabled);
+  await page.keyboard.press('Escape');
+  assert.deepEqual(external,[]);assert.deepEqual(errors,[]);
+});
+test('three-a-day local midnight caps the deadline; another tab cannot fork or silently continue a finished session',async t=>{
+  const {page,context,base,errors}=await setup(t);
+  const late=new Date(2026,0,1,23,59,30);await page.clock.setSystemTime(late);
+  const peer=await context.newPage();await peer.clock.install({time:late});
+  await peer.goto(base+'/dlang.html');await peer.locator('#study-scene [data-target]').first().waitFor();
+  await page.click('#practice-start');
+  const attempt=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
+  assert.equal(attempt.deadline,new Date(2026,0,2).getTime());
+  assert.ok(attempt.deadline-attempt.started>25000 && attempt.deadline-attempt.started<=30000);
+  await peer.waitForFunction(()=>document.getElementById('dlang-status').textContent.includes('another tab'));
+  assert.equal(await peer.locator('#practice-start').isDisabled(),true);
+  await peer.reload();await peer.locator('#practice-scene [data-target]').first().waitFor();
+  await page.clock.runFor(30001);
+  await page.waitForFunction(()=>!localStorage.getItem('dlang-practice-active-v1'));
+  await peer.waitForFunction(()=>!document.querySelector('#practice-scene [data-target]'));
+  const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-v1')));
+  assert.equal(state.attempts.length,1);assert.equal(state.attempts[0].day,'2026-01-01');
+  assert.equal(state.attempts[0].at,attempt.deadline-1);
+  assert.match(await page.locator('#practice-summary').textContent(),/0 of 3 sessions today/);
+  assert.deepEqual(errors,[]);
+});
+test('IPFS personal Kubo check, explicit public backup with exact-byte gateway verification, active/overwrite restore refusal',async t=>{
+  const {page,context,base,errors}=await setup(t);
+  const cid='bafy'+'a'.repeat(52);let backup,uploads=0;
+  await context.route(base+'/kubo/api/v0/version',route=>route.fulfill({json:{Version:'0.33-fixture'}}));
+  await context.route(base+'/kubo/api/v0/add?**',async route=>{
+    uploads++;backup=route.request().postDataBuffer().toString().match(/\r\n\r\n([\s\S]*?)\r\n--/)[1];
+    await route.fulfill({json:{Hash:cid}});
+  });
+  await context.route('https://gateway.example/ipfs/**',route=>route.fulfill({body:backup,contentType:'application/json'}));
+  await page.click('#storage-open');await page.selectOption('#storage-provider','local');
+  await page.fill('#storage-api',base+'/kubo');await page.fill('#storage-gateway','https://gateway.example/ipfs');
+  await page.locator('#storage-form button[type=submit],#storage-form button:not([type])').click();
+  await page.waitForFunction(()=>document.getElementById('storage-status').textContent.includes('reachable'));
+  assert.equal(uploads,0);
+  await page.click('#storage-backup');
+  await page.waitForFunction(()=>document.getElementById('storage-status').textContent.includes('Verified public backup'));
+  assert.equal(uploads,1);assert.deepEqual(Object.keys(JSON.parse(backup)),['version','practice']);
+  await page.click('#storage-restore');await page.waitForFunction(()=>document.getElementById('storage-status').textContent.includes('Practice restored'));
+  await page.keyboard.press('Escape');await page.click('#practice-start');await page.click('#storage-open');
+  await page.click('#storage-restore');assert.match(await page.locator('#storage-status').textContent(),/Finish your active practice/);
+  await page.keyboard.press('Escape');await page.click('#practice-finish');await page.click('#storage-open');
+  await page.click('#storage-restore');
+  await page.waitForFunction(()=>document.getElementById('storage-status').textContent.includes('different practice records'));
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-v1')).attempts.length),1);
+  await context.route('https://gateway.example/ipfs/**',route=>route.fulfill({body:'wrong bytes'}));
+  await page.click('#storage-backup');await page.waitForFunction(()=>document.getElementById('storage-status').textContent.includes('do not match'));
+  assert.deepEqual(errors,[]);
+});
+test('denied microphone reports failure without draft, upload or persistent microphone access',async t=>{
+  const {page,errors}=await setup(t);
+  await page.evaluate(()=>Object.defineProperty(navigator,'mediaDevices',{value:{getUserMedia:async()=>{throw new DOMException('Permission denied','NotAllowedError');}}}));
+  await page.click('#voice-open');await page.click('#voice-record');
+  await page.waitForFunction(()=>document.getElementById('voice-status').textContent.includes('Permission denied'));
+  assert.equal(await page.locator('#voice-record').isDisabled(),false);assert.equal(await page.locator('#voice-publish').isDisabled(),true);
+  assert.deepEqual(errors,[]);
+});
 test('default receiving preview: 7 scenes, desktop keyboard, five labels, fresh exemplar, About and both ankhs',async t=>{
   const{page,external,errors,rosterCalls}=await setup(t);
   assert.equal(rosterCalls(),0);assert.deepEqual(await page.evaluate(()=>window.__walletRequests),[]);
@@ -186,7 +327,7 @@ test('whitelist refusal and ordinary-motion FinishLine do not expose financial a
   await screenshot(page,'dlang-desktop-finish.png');
   assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
 });
-for(const width of [1280,375])test(`${width}px receiving editorial About, five-language pinyin study, consent profile and usable rabbit tutorial`,async t=>{
+for(const width of [1280,375])test(`${width}px receiving editorial About, five-language pinyin study, artwork profile and usable rabbit tutorial`,async t=>{
   const{page,external,errors,rosterCalls}=await setup(t,{width,reducedMotion:width===375?'reduce':'no-preference'});
   assert.doesNotMatch(await page.title(), /babelbet|duoduel/i);
   assert.doesNotMatch(await page.locator('body').textContent(), /babelbet|duoduel/i);
@@ -226,11 +367,11 @@ for(const width of [1280,375])test(`${width}px receiving editorial About, five-l
   await page.click('#rabbit-try');
   await page.locator('#history-dialog').waitFor({state:'visible'});
   await page.fill('#identity-name','A curious observer');
-  await page.fill('#identity-ens','observer.eth');await page.fill('#identity-discord','123456789012345678');
+  await page.fill('#identity-ens','observer.eth');
   await page.locator('#identity-form button[type=submit],#identity-form button:not([type])').click();
-  assert.match(await page.locator('#identity-status').textContent(),/Consent/);
-  assert.equal(await page.locator('#identity-links a').count(),0);
-  await page.check('#identity-consent');
+  assert.match(await page.locator('#identity-status').textContent(),/saved/);
+  assert.equal(await page.locator('#identity-form input[type=checkbox]').count(),0);
+  assert.equal(await page.locator('#personal-stats>div').count(),6);
   const png=await page.evaluate(()=>{
     const canvas=document.createElement('canvas');canvas.width=32;canvas.height=32;
     const ctx=canvas.getContext('2d');ctx.fillStyle='#285b52';ctx.fillRect(0,0,32,32);
@@ -238,22 +379,18 @@ for(const width of [1280,375])test(`${width}px receiving editorial About, five-l
     return canvas.toDataURL('image/png').split(',')[1];
   });
   await page.locator('#identity-photo').setInputFiles({name:'local-observer.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
-  await page.waitForFunction(()=>document.getElementById('identity-status').textContent.includes('Local preview only'));
-  await page.check('#identity-remember');
+  await page.waitForFunction(()=>document.getElementById('identity-status').textContent.includes('saved in this browser'));
+  await page.locator('#identity-banner-file').setInputFiles({name:'banner.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+  await page.waitForFunction(()=>document.getElementById('identity-banner').src.startsWith('data:image/'));
   await page.locator('#identity-form button:not([type])').click();
-  assert.match(await page.locator('#identity-status').textContent(),/by consent/);
-  assert.equal(await page.locator('#identity-links a').count(),2);
-  assert.match(await page.locator('#identity-links').textContent(),/not verified/);
+  assert.match(await page.locator('#identity-status').textContent(),/saved/);
   assert.match(await page.locator('#identity-image').getAttribute('src'),/^data:image\/png/);
   assert.equal(await page.locator('#history-dialog').evaluate(n=>n.scrollWidth<=n.clientWidth),true);
   if(process.env.DLANG_EVIDENCE_DIR)await page.locator('#history-dialog').screenshot({path:path.join(process.env.DLANG_EVIDENCE_DIR,`dlang-consent-profile-${width}.png`)});
   await page.reload();await page.locator('#study-scene [data-target]').first().waitFor();
   await page.click('#history-open');
   assert.equal(await page.locator('#identity-name').inputValue(),'A curious observer');
-  assert.equal(await page.locator('#identity-links a').count(),2);
-  await page.uncheck('#identity-consent');
-  assert.equal(await page.locator('#identity-links a').count(),0);
-  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-personal-profile-v1')).ensName),'');
+  assert.match(await page.locator('#identity-banner').getAttribute('src'),/^data:image\/png/);
   await page.click('#identity-clear');
   assert.equal(await page.evaluate(()=>localStorage.getItem('dlang-personal-profile-v1')),null);
   await page.keyboard.press('Escape');
