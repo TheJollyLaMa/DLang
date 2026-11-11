@@ -1,0 +1,42 @@
+{
+  "format": "dlang-public-deployment",
+  "version": 1,
+  "chainId": 8453,
+  "contract": "0xD0F666DF2dD23437F5e4d7eB975295b5885ee15E",
+  "token": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "steward": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "members": [
+    "0x807061DF657A7697c04045dA7d16D941861cAABc",
+    "0x405Bb3Cdf23833bb27BAD6629b7cd4f01688235f",
+    "0x29185eB8cfD22Aa719529217bFbadE61677e0Ad2",
+    "0xF18E19c537a7A99571Bc3F8cef81DCBCaea7c3AE",
+    "0xde21D925ee48fFAeD8939AE8B75dD6E82310f8Ea"
+  ],
+  "transactionHash": "0x86d7eb94419d5bdb1ad92c971853ee142b5c355c4b59851d784cebeef29fe2af",
+  "blockNumber": 55825011,
+  "deployerNonce": 66,
+  "sourceRevision": "8a4b0e3",
+  "sourceHash": "0x71f126ff90d3d17132fab5029d817af84e614d3e959c20e160d1c170e7662bdf",
+  "runtimeCodeHash": "0xa120fbd93937e35bd9a36383a134af3c8e311f1c49cfbdf2c6604b688079f66d",
+  "compiler": "0.8.30+commit.73712a01",
+  "optimizerRuns": 200,
+  "evmVersion": "shanghai",
+  "actualTotalFeeWei": "13675070117090",
+  "approvedFeeCapWei": "1000000000000000",
+  "sourceVerification": {
+    "service": "Sourcify",
+    "creationMatch": "exact_match",
+    "runtimeMatch": "exact_match",
+    "result": "https://sourcify.dev/server/v2/verify/0fd52912-51a9-4a37-b129-989ea21680b7",
+    "verifiedAt": "2026-11-11T00:03:35Z"
+  },
+  "observation": {
+    "verifiedAt": "2026-11-11T00:03:35Z",
+    "roundCount": 0,
+    "liabilities": "0",
+    "usdcBalance": "0",
+    "note": "Dated deployment observation, not live chain synchronization."
+  },
+  "paymentsEnabled": false,
+  "fundedRoundOpened": false
+}

@@ -170,6 +170,14 @@ test('reviewed five-member pilot snapshot is explicit, bounded and never grants 
   assert.ok(published.members.some(row=>row.label==='GrannyLyn'));
   assert.ok(published.members.some(row=>row.label==='Bobdub'));
   for(const row of published.members)assert.deepEqual(pilotEligibility(published,row.walletAddress),{eligible:true,authorization:false});
+  const deployment=JSON.parse(fs.readFileSync('public/dlang/deployment.json'));
+  assert.equal(deployment.chainId,8453);
+  assert.equal(deployment.contract,'0xD0F666DF2dD23437F5e4d7eB975295b5885ee15E');
+  assert.deepEqual(deployment.members.map(address=>address.toLowerCase()),published.members.map(row=>row.walletAddress.toLowerCase()));
+  assert.equal(deployment.sourceVerification.runtimeMatch,'exact_match');
+  assert.ok(BigInt(deployment.actualTotalFeeWei)<BigInt(deployment.approvedFeeCapWei));
+  assert.equal(deployment.paymentsEnabled,false);
+  assert.equal(deployment.fundedRoundOpened,false);
   const address='0x'+'1'.repeat(40);
   assert.equal(pilotEligibility(published,address).eligible,false);
   assert.throws(()=>pilotEligibility({...published,members:[published.members[0],published.members[0]]},address),/invalid/);

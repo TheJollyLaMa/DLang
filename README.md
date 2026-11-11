@@ -22,9 +22,9 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
   sync or wallet-control/financial authorization.
 
 **Payments remain disabled.** Local clocks, answers and history are editable,
-not financial evidence. The [trial escrow source](docs/Trial-Contract.md) is not
-deployed or mainnet-ready. Trusted review, deployment
-verification and real transaction-flow acceptance are launch gates. No Supporter
+not financial evidence. The [empty trial escrow](docs/Trial-Contract.md) is
+deployed on Base and exactly source-matched by Sourcify. No funded round was opened.
+Trusted score/operator review and real transaction-flow acceptance remain launch gates. No Supporter
 token has been minted; no token purchase link is invented. Voice/LiveKit is
 future work, not implemented.
 

@@ -23,21 +23,27 @@
   November 22 18:00 America/New_York. Daily scenes Tue-Sun open at midnight.
   Each actual on-chain round needs reviewed matching timestamps/terms.
 
-## Still blocking real buy-ins
+## Deployment completed; real buy-ins still blocked
 
-No contract address exists yet. No deployment, token approval, deposit or
-settlement was signed. Before a live-money launch:
+The empty Base escrow is `0xD0F666DF2dD23437F5e4d7eB975295b5885ee15E`.
+Its deployment was signed by the approved steward wallet November 11 and cost
+0.000013675070117090 ETH including L1 fees, within the 0.001 ETH cap. No token
+approval, deposit, settlement or round opening was signed.
+[Receipt and exact-source verification](../public/dlang/deployment.json).
 
-1. Reproducible artifacts, exact constructor/roster manifest and deployment gas
-   estimate within cap; explicit signing in the authorized deployment wallet.
-2. Deployed-bytecode/source verification and token pause/blacklist/upgrade risk
-   disclosure. Native-USDC compatibility passed on a local fork at Base block
-   55819909 (entry, settlement, owner claim and shutdown refund); no live writes.
-3. Reviewed frontend approval/join/claim/admin proposal/cancellation flows,
+Before a live-money launch:
+
+1. Reviewed frontend approval/join/claim/admin proposal/cancellation flows,
    with wallet/network/code/receipt checks. Current frontend has none enabled.
-4. An operator protocol for gathering/reviewing results, disputes and refunds.
+2. An operator protocol for gathering/reviewing results, disputes and refunds.
    Local editable browser scores are not an automatic settlement oracle.
-5. Language/content review and actual participant/device trial; a published
+3. Language/content review and actual participant/device trial; a published
    frontend is not completion of these gates.
+4. Explicit token pause/blacklist/upgrade risk disclosure and participant consent.
+
+Native-USDC compatibility passed on local forks at Base blocks 55819909 and
+55824746 (entry, settlement, owner claim and shutdown refund). All fork writes
+stayed local. Deployment runtime/source, immutable steward/token and roster were
+verified; these checks do not replace the remaining operational gates.
 
 Do not announce a funded round merely because the preview countdown is running.

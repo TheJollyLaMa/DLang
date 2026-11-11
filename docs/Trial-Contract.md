@@ -1,9 +1,23 @@
-# DLang trial escrow: source, not a deployed service
+# DLang trial escrow: deployed empty, not an activated buy-in
 
 The steward requested a Base mainnet pilot using native USDC, a one-USDC entry,
 up to eight trial members, steward-reviewed results and participant-only
-recovery. This source is not an audit, deployed contract or permission to fund
-the current browser preview. All frontend payments remain disabled.
+recovery. Deployment is not an audit or permission to fund the current browser
+preview. All frontend payments remain disabled.
+
+## Deployment evidence
+
+- Base 8453: `0xD0F666DF2dD23437F5e4d7eB975295b5885ee15E`.
+- [Transaction](https://basescan.org/tx/0x86d7eb94419d5bdb1ad92c971853ee142b5c355c4b59851d784cebeef29fe2af),
+  block 55825011, steward deployer nonce 66.
+- Actual execution plus L1 fee: 0.000013675070117090 ETH, below 0.001 ETH.
+- [Public constructor/configuration evidence](../public/dlang/deployment.json).
+- [Sourcify exact creation/runtime match](https://sourcify.dev/server/v2/verify/0fd52912-51a9-4a37-b129-989ea21680b7).
+  Runtime/immutable configuration also checked locally and through a second RPC.
+  Sourcify's forwarded Etherscan submission hit its daily quota; do not claim a
+  Basescan verification badge. Independent source verification succeeded.
+- At deployment verification November 11: five members, zero rounds, zero
+  liabilities, zero USDC. This is dated evidence, not a live synchronization claim.
 
 ## Trust and review
 
@@ -70,11 +84,11 @@ Apache-2.0 terms and repository LICENSE/NOTICE apply. Generic escrow
 does not implement weekly forfeiture/carry provenance, so the bounded trial
 ledger is new, not an extracted speculative shared engine. Focused reviews of
 the initial draft and later weekly-overlap/recovery changes found no exploit.
-Thirteen local contract tests pass. These bounded reviews are not independent
-audits; no deployed/audited claim follows from them.
+Thirteen local contract tests pass, plus native-USDC entry/settlement/claim/refund
+on a local Base fork. These bounded reviews and tests are not independent audits.
 
-Before mainnet: approve fixed roster, exact admin/USDC addresses, timeout/dust
-rules, bytecode/source verification, Base-USDC compatibility, gas estimate under
-the 0.001 ETH cap, operator/dispute procedure and reviewed frontend transaction
-flows. Signing requires an authorized wallet; never put a private key in source,
-chat, browser profile or deployment metadata.
+Before funded rounds: operator/dispute procedure, participant/content acceptance
+and reviewed frontend transaction flows. Roster/admin/asset/timeout/dust review,
+Base-native-USDC compatibility, within-cap deployment and exact source verification
+are recorded above. Never put a private key in source, chat, browser profile or
+deployment metadata.
