@@ -60,6 +60,27 @@ See [pilot configuration](docs/Pilot-Configuration.md) for the remaining gates.
 or private registry; eligibility loads the reviewed public pilot snapshot only
 after an explicit check. Production Pages publication does not activate payments.
 
+## Authorized deployment operators
+
+```sh
+npm run deploy --prefix contract-tools -- --env /path/to/authorized.env
+```
+
+Default behavior is a **read-only dry-run**. The selected file must provide
+`DEPLOYER_PRIVATE_KEY` for the reviewed steward address; it is loaded only in the
+local process, never copied, printed or published. Keep it outside this repository.
+The dry-run checks source, constructor roster, nonce, native-USDC code, L2 gas,
+conservative L1 bounds and the 0.001 ETH cap. Nonzero operator fees are refused
+pending a reviewed calculation.
+
+Only the additional `--broadcast` flag signs and sends. It requires a matching
+preflight less than ten minutes old and journals the hash before broadcasting,
+so a timeout/error cannot silently trigger a second deployment. Reconcile any
+recorded transaction manually; never delete the journal to retry blindly.
+Runtime source and immutable configuration are checked after three confirmations.
+This deploys an empty escrow: no round opening, USDC approval or UI payments.
+Protocol fee changes remain external risks despite conservative bounds.
+
 ## Reuse and licenses
 
 Need: a standalone DLang receiving app without old sandbox runtime. Adapted only

@@ -6,7 +6,7 @@ const root = new URL('../', import.meta.url);
 const source = fs.readFileSync(new URL('contracts/dlang/DLangTrial.sol', root), 'utf8');
 const input = { language: 'Solidity', sources: { 'DLangTrial.sol': { content: source } },
   settings: { optimizer: { enabled: true, runs: 200 }, evmVersion: 'shanghai',
-    outputSelection: { '*': { '*': ['abi', 'evm.bytecode.object'] } } } };
+    outputSelection: { '*': { '*': ['abi', 'metadata', 'evm.bytecode.object', 'evm.deployedBytecode.object', 'evm.deployedBytecode.immutableReferences'] } } } };
 const output = JSON.parse(solc.compile(JSON.stringify(input)));
 const errors = (output.errors || []).filter(error => error.severity === 'error');
 if (errors.length) throw Error(errors.map(error => error.formattedMessage).join('\n'));
@@ -47,7 +47,10 @@ try {
   };
   fs.mkdirSync(new URL('build/', import.meta.url), { recursive: true });
   fs.writeFileSync(new URL('build/compiler-input.json', import.meta.url), JSON.stringify(input, null, 2));
-  fs.writeFileSync(new URL('build/artifact.json', import.meta.url), JSON.stringify({ abi: artifact.abi, bytecode: `0x${artifact.evm.bytecode.object}` }, null, 2));
+  fs.writeFileSync(new URL('build/artifact.json', import.meta.url), JSON.stringify({
+    abi: artifact.abi, bytecode: `0x${artifact.evm.bytecode.object}`,
+    runtime: artifact.evm.deployedBytecode, metadata: artifact.metadata
+  }, null, 2));
   fs.writeFileSync(new URL('build/unsigned-deployment.json', import.meta.url), JSON.stringify(manifest, null, 2));
   console.log(JSON.stringify({ chain: 8453, steward, members: members.length, gasEstimate: String(estimate),
     l2MaximumWei: String(estimatedL2Maximum), capWei: String(cap), signed: false,
