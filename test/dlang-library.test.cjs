@@ -74,12 +74,11 @@ test('self-review intervals: early rehearsal does not postpone due date; again r
 });
 
 test('deployed 36-concept history migrates without binding old scene IDs to new targets',async()=>{
-  const {execFileSync}=require('node:child_process');
   const {YEAR_LIBRARY,PRACTICE_KEY,readPractice,nextScene,practiceStats}=await import('../public/dlang/library.mjs');
-  const release=JSON.parse(execFileSync('git',['show','4f4a809:public/dlang/year-library.json'],{encoding:'utf8',maxBuffer:8*1024*1024}));
-  assert.equal(release.version,1);assert.equal(release.concepts,36);
-  assert.notDeepEqual(release.scenes[0].targets.map(target=>target.concept),YEAR_LIBRARY[0].targets.map(target=>target.concept));
-  const now=new Date(2026,0,1,12).getTime(),old=release.scenes[0];
+  // First deployed recipe at 4f4a809; independent of checkout history depth.
+  const old={id:'year-0001',concepts:['bridge','boat','knife','bowl','bag','tree','bottle','book','basket','bicycle','table','window']};
+  assert.notDeepEqual(old.concepts,YEAR_LIBRARY[0].targets.map(target=>target.concept));
+  const now=new Date(2026,0,1,12).getTime();
   const storage=new Map([[PRACTICE_KEY,JSON.stringify({version:1,attempts:[{
     scene:old.id,day:'2026-01-01',correct:7,touched:10,language:'es',at:now
   }],reviews:{dog:{stage:1,due:now+86400000,seen:now,count:2}}})]]);
