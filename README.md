@@ -256,3 +256,14 @@ remain separate follow-up work.
 
 Code: Apache-2.0. Original creative material: CC BY 4.0 unless otherwise marked.
 Preserve [NOTICE](NOTICE), donor notices and vendor licenses.
+
+
+## Link previews
+
+Public entry pages include static Open Graph and Twitter large-image metadata,
+with an absolute HTTPS image URL. The 1200 x 630 JPEG at
+`public/dlang/media/social-preview.jpg` previews this public website without a connected wallet.
+Keep the image in the deployed artifact when changing the build. After updating
+it, check the raw HTML and image response as a crawler; Discord and other services
+may cache earlier previews. ENS/IPFS snapshots need a separate site publication;
+metadata alone does not update an existing immutable snapshot.
