@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { createServer } = require('../index');
+const { openTool } = require('./learning-tools.cjs');
 
 test('mobile practice preserves keyboard, midnight, cross-tab, and honest word-map controls', async t => {
   const server = createServer({ fetchRoster: async () => ({ contributors: [] }) });
@@ -24,7 +25,7 @@ test('mobile practice preserves keyboard, midnight, cross-tab, and honest word-m
     window.addEventListener('dlang:scene', event => window.__sceneContexts.push(event.detail));
   });
   await page.goto(`${base}/dlang.html`);
-  await page.locator('#practice-start').waitFor();
+  await openTool(page, 'library');
   await page.fill('#library-day', '8');
   await page.locator('#library-day').dispatchEvent('change');
   await page.waitForFunction(() => window.__sceneContexts.some(context => context?.sceneId === 'year-v2-0022'));
@@ -40,6 +41,7 @@ test('mobile practice preserves keyboard, midnight, cross-tab, and honest word-m
       speak(utterance) { window.__lastUtterance = utterance.text; }
     } });
   });
+  await openTool(page, 'practice');
   await page.selectOption('#practice-language', 'es');
   await page.click('#practice-start');
   const active = await page.evaluate(() => JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
@@ -54,11 +56,13 @@ test('mobile practice preserves keyboard, midnight, cross-tab, and honest word-m
   assert.equal(contextValue.scene.targets.length, 12);
   assert.equal(contextValue.sceneHash, active.sceneHash);
   assert.equal(contextValue.level, 1);
+  await openTool(page, 'library');
   await page.fill('#library-day', '9');
   await page.locator('#library-day').dispatchEvent('change');
   const isolatedContext = await page.evaluate(() => window.__sceneContexts.at(-1));
   assert.equal(isolatedContext.sceneId, active.scene, 'preview navigation must not replace the active practice scene');
   assert.equal(isolatedContext.sceneHash, active.sceneHash);
+  await openTool(page, 'practice');
   const target = page.locator('#practice-scene [data-target]').first();
   await target.focus();
   assert.equal(await target.getAttribute('tabindex'), '0');
@@ -79,6 +83,7 @@ test('mobile practice preserves keyboard, midnight, cross-tab, and honest word-m
   await page.click('#practice-start');
   const second = await context.newPage();
   await second.goto(`${base}/dlang.html`);
+  await openTool(second, 'practice');
   await second.locator('#practice-scene [data-target]').first().waitFor();
   await second.click('#practice-finish');
   await page.waitForFunction(() => JSON.parse(localStorage.getItem('dlang-practice-v1')).attempts.length === 2);
@@ -93,6 +98,7 @@ test('mobile practice preserves keyboard, midnight, cross-tab, and honest word-m
       fr: { code: 'fr', name: 'French', source: 'learned_lexemes', words: [{ word: 'chien', translations: ['dog'] }] }
     }
   })));
+  await openTool(page, 'library');
   await page.click('#wordmap-open');
   await page.locator('#wordmap-levels details:nth-child(2) summary').click();
   await page.getByText(/Possible course candidates \(shared English gloss; not verified translations\)/).first().waitFor();

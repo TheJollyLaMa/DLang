@@ -78,3 +78,52 @@ dialog a{color:#235e58;text-underline-offset:4px}
 #narration-root fieldset,#conversation-root fieldset{display:block;min-width:0}
 #narration-root [role=status],#conversation-root [role=status]{min-height:1.6em}
 @media(max-width:650px){#narration-root,#conversation-root{padding:1rem}#narration-root button,#conversation-root button{max-width:100%}}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+body{background:radial-gradient(ellipse at 70% 20%,#28433c 0,transparent 65%),#0e2426}
+main{max-width:1440px;padding:1.5rem 5.5rem}
+.landing-film{position:relative;overflow:hidden;border:1px solid #9a82524d;border-radius:22px;box-shadow:0 24px 80px #06141680;background:#142b29}
+.landing-film picture,.landing-film img{display:block;width:100%;height:auto}
+#landing-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}
+#landing-video.has-frame{opacity:1}
+.film-control{position:absolute;right:1rem;bottom:1rem;z-index:1;min-height:44px;background:#102c2bcc;color:#fff4db;border:1px solid #d5bc8e66;backdrop-filter:blur(8px);font: .75rem/1.3 system-ui,sans-serif}
+.landing-invitation{text-align:center;padding:2.2rem 1rem 1rem}
+.landing-line{font-size:clamp(1.7rem,3vw,2.6rem);line-height:1.4;margin:.8rem 0 1.4rem}
+.landing-line em{color:#e1c49b}
+.landing-actions{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.8rem}
+.landing-actions>button:first-child{border-radius:100px;padding:.85rem 1.5rem;background:#d8e6bf;border-color:#d8e6bf}
+.landing-actions>button:first-child span{padding-left:1rem}
+.text-button{background:transparent;color:#e3d5b9;border-color:transparent;padding:.65rem}
+.text-button:hover:not(:disabled){background:#25423e;color:#fff4db}
+.landing-note{font: .85rem/1.6 system-ui,sans-serif;color:#b8c5b9;margin:1.3rem 0}
+.landing-footer{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-top:1px solid #9a82524d;color:#b8c5b9;font:.75rem/1.6 system-ui,sans-serif;margin-top:1rem}
+.landing-footer>div{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap}
+.tool-rail{position:fixed;left:8px;top:50%;transform:translateY(-40%);z-index:1200;display:flex;flex-direction:column;gap:7px}
+.tool-rail button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:62px;min-height:66px;padding:8px 3px;background:#102a2bef;color:#c9d4c3;border:1px solid #a68b5752;border-radius:13px;font: .6rem/1.2 system-ui,sans-serif;backdrop-filter:blur(14px)}
+.tool-rail svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round}
+.tool-rail button:hover,.tool-rail button[aria-expanded=true]{background:#d9dfbd;color:#193c36;border-color:#e4ca97}
+.learning-panel{position:fixed;top:max(18px,12vh);bottom:24px;width:min(940px,calc(100vw - 165px));z-index:1100;overflow:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;background:#102a2bf5;border:1px solid #9f8c616b;border-radius:22px;box-shadow:0 20px 100px #020d13b3;padding:0 1.5rem 1.5rem;line-height:1.6;backdrop-filter:blur(24px)}
+.panel-left{left:82px}.panel-right{right:28px}
+.panel-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 0;background:#102a2bf5;border-bottom:1px solid #8e9e8252}
+.panel-bar h2{font-size:1.4rem;margin:0;color:#e9d8b7}
+.panel-close{flex:none;width:44px;height:44px;border-radius:50%;padding:0;font:1.5rem system-ui;background:#294b43;color:#f5eede;border-color:#8e9e8252}
+.learning-panel .card{padding:1.3rem;border-color:#78927c4a;background:#1a3835a3}
+.learning-panel:focus{outline:none}
+.learning-panel:focus-visible{outline:2px solid #e9b873}
+decent-header{display:block;overflow-x:clip}
+.learning-panel .notice{font-size:.85rem;margin:1rem 0;background:#29392e}
+#dlang-status:empty{display:none}
+@media(max-width:650px){
+  main{padding:.75rem .8rem 6.5rem}
+  .landing-film{border-radius:15px}
+  .landing-invitation{padding:1.7rem .2rem .5rem}
+  .landing-invitation .eyebrow{font-size:.62rem;letter-spacing:.13em}
+  .landing-actions{gap:.4rem}
+  .landing-actions>button:first-child{font-size:.95rem}
+  .film-control{right:.65rem;bottom:.65rem;font-size:.65rem;padding:.5rem}
+  .tool-rail{left:50%;top:auto;bottom:max(10px,env(safe-area-inset-bottom));transform:translateX(-50%);flex-direction:row;gap:3px;padding:5px;border:1px solid #a68b5752;border-radius:18px;background:#0e2426f2}
+  .tool-rail button{width:59px;min-height:58px;border:0;background:transparent;border-radius:12px}
+  .learning-panel{left:8px;right:8px;top:12px;bottom:90px;width:auto;padding:0 .8rem 1rem;border-radius:16px}
+  .panel-bar h2{font-size:1.15rem}
+  .learning-panel .card{padding:1rem}
+  .landing-footer{justify-content:center;text-align:center;gap:.3rem}
+}

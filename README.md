@@ -98,6 +98,22 @@ backend. Without configuration the UI stays in typed practice.
 
 ## Run and test
 
+The landing uses the steward-supplied `DLang_Landing_Animated.mp4`: the desktop
+composition is unchanged; the silent mobile edit crops at x=800, placing the
+window above the study table/book. Still posters load first; reduced-motion
+visitors choose whether to play. Animation is muted, pausable and stops in
+background tabs. The icon rail opens daily discoveries, curriculum/word map,
+voices and the observation week; Escape closes a panel and returns focus.
+Closing voices stops the session/capture rather than leaving hidden audio running.
+
+Reuse: adapted Busking's icon-tab/edge-panel interaction from
+`css/styles.css` (`#top-ten-tab`, `#top-ten-panel`) at
+`ab7c1dd4a25479d0b8351e42b17b8fac6c7c0221`; inspected its dirty working tree
+without importing unfinished changes. DLang keeps existing module-owned DOM,
+uses nonmodal labeled panels, and adds focus/keyboard, consent, mobile video
+dimensions and no-horizontal-overflow receiving tests. No Three.js or radio
+runtime is imported. Monthly Runway art improvements are tracked in issue #6.
+
 Node 22 or later:
 
 ```sh

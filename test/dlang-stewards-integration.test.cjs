@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { createServer } = require('../index');
+const { openTool } = require('./learning-tools.cjs');
 
 async function setup(t, width = 1280) {
   const server = createServer();
@@ -22,7 +23,7 @@ async function setup(t, width = 1280) {
     navigator.mediaDevices.getUserMedia = async () => { window.__mediaCalls++; throw Error('Microphone not granted in this test'); };
   });
   await page.goto(base + '/dlang.html');
-  await page.locator('#study-scene [data-target]').first().waitFor();
+  await openTool(page, 'voices');
   return { page, external, errors };
 }
 
@@ -34,8 +35,10 @@ for (const width of [1280, 375]) test(`${width}px steward modules mount without 
   }
   assert.equal(await page.locator('#narration-root header').evaluate(header => getComputedStyle(header).display), 'block');
   assert.equal(await page.locator('#narration-root header input').count(), 0);
+  await openTool(page, 'library');
   await page.getByRole('spinbutton', { name: 'Day', exact: true }).fill('8');
   await page.getByRole('spinbutton', { name: 'Day', exact: true }).press('Tab');
+  await openTool(page, 'voices');
   await page.waitForFunction(() => document.querySelector('#narration-root header').textContent.includes('year-v2-0022'));
   assert.match(await page.locator('#conversation-root').textContent(), /level 2/);
   assert.equal(await page.evaluate(() => window.__mediaCalls), 0);
@@ -62,6 +65,7 @@ test('weekly attempt blocks narration and conversation until it finishes', async
     round.enroll('en', { eligible: true, authorization: false });
   }, config);
   await page.reload();
+  await openTool(page, 'week');
   await page.locator('#study-scene [data-target]').first().waitFor();
   await page.click('#week-tab');
   await page.click('#go');

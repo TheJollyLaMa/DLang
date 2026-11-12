@@ -9,3 +9,7 @@ Selected foundation code was adapted from earlier experimental source.
 Required upstream attribution is preserved in LICENSES/BabelBet-NOTICE.txt.
 This attribution describes source provenance, not product affiliation.
 Vendored libraries retain their own licenses and notices.
+
+Landing video and derived media in public/dlang/media/ were supplied by the
+steward for DLang. No additional license to this supplied media is asserted;
+the original SVG artwork license does not relicense these files.

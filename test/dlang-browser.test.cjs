@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const path = require('node:path');
 const { createServer } = require('../index');
+const { openTool } = require('./learning-tools.cjs');
 const START = Date.parse('2026-11-02T05:00:00Z');
 const ADDRESS = '0x'+'1'.repeat(40);
 const config = {id:'browser-fixture',timezone:'America/New_York',enrollmentCutoff:new Date(START).toISOString(),dayStarts:Array.from({length:8},(_,i)=>new Date(START+i*86400000).toISOString()),conceptPolicy:'recurring-12',level:1};
@@ -35,6 +36,7 @@ async function setup(t,{width=1280,reducedMotion='no-preference',scheduled=false
     window.addEventListener('eip6963:requestProvider',()=>window.dispatchEvent(new CustomEvent('eip6963:announceProvider',{detail:{info:{uuid:'fixture',name:'Offline fixture',rdns:'org.example.fixture',icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>'},provider}})));
   },ADDRESS);
   await page.goto(base+'/dlang.html');
+  await openTool(page,'week');
   await page.locator('#study-scene [data-target]').first().waitFor();
   await page.locator('decent-header wallet-connect #connect').waitFor();
   return{page,context,base,external,errors,rosterCalls:()=>rosterCalls};
@@ -44,6 +46,7 @@ async function screenshot(page,name){
 }
 for(const width of [1280,375])test(`${width}px three-a-day practice: audible touch, persistence, real stats, daily cap and full library`,async t=>{
   const {page,errors}=await setup(t,{width,reducedMotion:'reduce'});
+  await openTool(page,'practice');
   await page.clock.setSystemTime(new Date(2026,0,1,12));
   await page.evaluate(()=>{
     window.__spoken=[];
@@ -57,7 +60,7 @@ for(const width of [1280,375])test(`${width}px three-a-day practice: audible tou
   assert.equal(await page.evaluate(()=>window.__spoken.length),2);
   await page.click('#practice-remembered');
   const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
-  await page.reload();await page.locator('#practice-scene [data-target]').first().waitFor();
+  await page.reload();await openTool(page,'practice');await page.locator('#practice-scene [data-target]').first().waitFor();
   const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
   assert.equal(after.deadline,before.deadline);assert.deepEqual(after.outcomes,before.outcomes);
   await page.click('#practice-finish');
@@ -71,6 +74,7 @@ for(const width of [1280,375])test(`${width}px three-a-day practice: audible tou
   await page.click('#history-open');
   assert.match(await page.locator('#personal-stats').textContent(),/3 \/ 3Sessions today1Practice days1Objects touched/);
   await page.keyboard.press('Escape');
+  await openTool(page,'library');
   await page.fill('#library-day','365');await page.locator('#library-day').dispatchEvent('change');
   await page.selectOption('#library-slot','2');
   assert.equal(await page.locator('#library-preview [data-target^="y1094-"]').count(),12);
@@ -105,6 +109,7 @@ test('ENS artwork resolves against connected wallet; local artwork and profile s
 });
 test('voice microphone is explicit, draft survives reload, native/public upload is explicit, delete remains local',async t=>{
   const {page,external,errors}=await setup(t,{microphone:true});
+  await openTool(page,'practice');
   await page.click('#voice-open');await page.selectOption('#voice-language','fr');
   assert.equal(await page.locator('#voice-publish').isDisabled(),true);
   await page.click('#voice-record');
@@ -113,7 +118,7 @@ test('voice microphone is explicit, draft survives reload, native/public upload 
   await page.click('#voice-record');
   await page.waitForFunction(()=>!document.getElementById('voice-preview').disabled);
   assert.deepEqual(external,[],'recording does not upload');
-  await page.reload();await page.locator('#study-scene [data-target]').first().waitFor();
+  await page.reload();await openTool(page,'practice');await page.locator('#voice-open').waitFor();
   await page.click('#voice-open');await page.selectOption('#voice-language','fr');
   await page.waitForFunction(()=>!document.getElementById('voice-preview').disabled);
   await page.click('#voice-publish');assert.match(await page.locator('#voice-status').textContent(),/public speaker credit/);
@@ -127,16 +132,17 @@ test('voice microphone is explicit, draft survives reload, native/public upload 
 });
 test('three-a-day local midnight caps the deadline; another tab cannot fork or silently continue a finished session',async t=>{
   const {page,context,base,errors}=await setup(t);
+  await openTool(page,'practice');
   const late=new Date(2026,0,1,23,59,30);await page.clock.setSystemTime(late);
   const peer=await context.newPage();await peer.clock.install({time:late});
-  await peer.goto(base+'/dlang.html');await peer.locator('#study-scene [data-target]').first().waitFor();
+  await peer.goto(base+'/dlang.html');await openTool(peer,'practice');
   await page.click('#practice-start');
   const attempt=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
   assert.equal(attempt.deadline,new Date(2026,0,2).getTime());
   assert.ok(attempt.deadline-attempt.started>25000 && attempt.deadline-attempt.started<=30000);
   await peer.waitForFunction(()=>document.getElementById('dlang-status').textContent.includes('another tab'));
   assert.equal(await peer.locator('#practice-start').isDisabled(),true);
-  await peer.reload();await peer.locator('#practice-scene [data-target]').first().waitFor();
+  await peer.reload();await openTool(peer,'practice');await peer.locator('#practice-scene [data-target]').first().waitFor();
   await page.clock.runFor(30001);
   await page.waitForFunction(()=>!localStorage.getItem('dlang-practice-active-v1'));
   await peer.waitForFunction(()=>!document.querySelector('#practice-scene [data-target]'));
@@ -148,6 +154,7 @@ test('three-a-day local midnight caps the deadline; another tab cannot fork or s
 });
 test('IPFS personal Kubo check, explicit public backup with exact-byte gateway verification, active/overwrite restore refusal',async t=>{
   const {page,context,base,errors}=await setup(t);
+  await openTool(page,'practice');
   const cid='bafy'+'a'.repeat(52);let backup,uploads=0;
   await context.route(base+'/kubo/api/v0/version',route=>route.fulfill({json:{Version:'0.33-fixture'}}));
   await context.route(base+'/kubo/api/v0/add?**',async route=>{
@@ -176,6 +183,7 @@ test('IPFS personal Kubo check, explicit public backup with exact-byte gateway v
 });
 test('denied microphone reports failure without draft, upload or persistent microphone access',async t=>{
   const {page,errors}=await setup(t);
+  await openTool(page,'practice');
   await page.evaluate(()=>Object.defineProperty(navigator,'mediaDevices',{value:{getUserMedia:async()=>{throw new DOMException('Permission denied','NotAllowedError');}}}));
   await page.click('#voice-open');await page.click('#voice-record');
   await page.waitForFunction(()=>document.getElementById('voice-status').textContent.includes('Permission denied'));
@@ -211,7 +219,7 @@ test('default receiving preview: 7 scenes, desktop keyboard, five labels, fresh 
   await page.locator('#study-scene [data-target="d2-bicycle"]').click();
   assert.match(await page.locator('#recognition-status').textContent(),/different exemplar/);
   await page.selectOption('#language','other');assert.match(await page.locator('#dlang-status').textContent(),/Unsupported/);
-  await page.click('#about-open');
+  await page.locator('decent-header app-title button').click();
   assert.match(await page.locator('decent-header').textContent()||'',/^/);
   const about=page.locator('#about-dialog');
   await about.waitFor({state:'visible'});
@@ -242,8 +250,10 @@ test('375px touch pilot fixture: explicit whitelist, language lock, Go, reload, 
   await page.locator('#study-zoom').tap();
   await screenshot(page,'dlang-mobile-375-study.png');
   assert.equal(rosterCalls(),0);
+  await page.keyboard.press('Escape');
   await page.locator('decent-header wallet-connect #connect').tap();
   await page.waitForFunction(()=>document.getElementById('wallet-state').textContent.includes('Wallet connected'));
+  await openTool(page,'week');
   assert.equal(rosterCalls(),0,'connect is not automatic registry authorization');
   await page.locator('#check-pilot').tap();await page.waitForFunction(()=>document.getElementById('pilot-status').textContent.includes('reviewed DLang pilot snapshot'));
   assert.equal(rosterCalls(),1);
@@ -261,7 +271,7 @@ test('375px touch pilot fixture: explicit whitelist, language lock, Go, reload, 
   await page.locator('#answer-form button').tap();
   assert.match(await page.locator('#daily-state').textContent(),/1\/12/);
   const before=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-local-preview-v1:browser-fixture')).attempts[0]);
-  await page.reload();await page.locator('#study-scene [data-target]').first().waitFor();await page.locator('#week-tab').tap();
+  await page.reload();await openTool(page,'week');await page.locator('#study-scene [data-target]').first().waitFor();await page.locator('#week-tab').tap();
   const after=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-local-preview-v1:browser-fixture')).attempts[0]);
   assert.equal(before.deadline,after.deadline);assert.equal(after.correct.length,1);
   assert.equal(await page.locator('#go').isDisabled(),true);
@@ -304,7 +314,7 @@ test('confirmed pilot Sunday cutoff is visible, timer is capped and Get Ready re
 test('missing configuration remains unavailable without disabling free study',async t=>{
   const{page,context}=await setup(t);
   await context.route('**/dlang/round.json',route=>route.fulfill({status:503,body:'Unavailable'}));
-  await page.reload();await page.locator('#study-scene [data-target]').first().waitFor();
+  await page.reload();await openTool(page,'week');await page.locator('#study-scene [data-target]').first().waitFor();
   assert.match(await page.locator('#schedule').textContent(),/unavailable/);
   assert.equal(await page.locator('#enroll').isDisabled(),true);
   assert.equal(await page.locator('#study-labels strong[lang]').count(),5);
@@ -387,16 +397,18 @@ for(const width of [1280,375])test(`${width}px receiving editorial About, five-l
   assert.match(await page.locator('#identity-image').getAttribute('src'),/^data:image\/png/);
   assert.equal(await page.locator('#history-dialog').evaluate(n=>n.scrollWidth<=n.clientWidth),true);
   if(process.env.DLANG_EVIDENCE_DIR)await page.locator('#history-dialog').screenshot({path:path.join(process.env.DLANG_EVIDENCE_DIR,`dlang-consent-profile-${width}.png`)});
-  await page.reload();await page.locator('#study-scene [data-target]').first().waitFor();
+  await page.reload();await openTool(page,'week');await page.locator('#study-scene [data-target]').first().waitFor();
   await page.click('#history-open');
   assert.equal(await page.locator('#identity-name').inputValue(),'A curious observer');
   assert.match(await page.locator('#identity-banner').getAttribute('src'),/^data:image\/png/);
   await page.click('#identity-clear');
   assert.equal(await page.evaluate(()=>localStorage.getItem('dlang-personal-profile-v1')),null);
   await page.keyboard.press('Escape');
+  await page.locator('.tool-rail [data-open-panel="week"]').click();
   await page.click('#rabbit-open');
   for(let i=0;i<4;i++)await page.click('#rabbit-next');
   await page.click('#rabbit-next');assert.equal(await page.locator('#rabbit-dialog').evaluate(n=>n.open),false);
+  await openTool(page,'week');
   assert.equal(await page.getByRole('button',{name:'Real $1 buy-in unavailable',exact:true}).isDisabled(),true);
   assert.equal(rosterCalls(),0);assert.deepEqual(await page.evaluate(()=>window.__walletRequests),[]);
   assert.deepEqual(external,[]);assert.deepEqual(errors,[]);

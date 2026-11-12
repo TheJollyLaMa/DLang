@@ -12,6 +12,8 @@ import { mountPractice } from './practice.mjs';
 import { mountWordMap } from './wordmap.mjs';
 import { mountConversation } from './conversation.mjs';
 import { mountNarration } from './narration.mjs';
+import { mountLanding } from './landing.mjs';
+const landing = mountLanding();
 const $ = id => document.getElementById(id);
 const languageName = tag => LANGUAGE_NAMES[tag] || tag;
 $('language').replaceChildren(...Object.keys(PACKS).map(tag => new Option(languageName(tag), tag)), new Option('Other — unsupported in this seed preview', 'other'));
@@ -52,8 +54,8 @@ function setScoredPracticeBlocked(blocked) {
     $(id).hidden = blocked;
     if (blocked) $(id).querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
   }
-  narration?.setBlocked(blocked);
-  conversation?.setBlocked(blocked);
+  narration?.setBlocked(blocked || landing.active !== 'voices');
+  conversation?.setBlocked(blocked || landing.active !== 'voices');
 }
 const dialogFocus = new WeakMap();
 function openDialog(id) {
@@ -81,10 +83,10 @@ globalThis.DECENT_CONFIG = {
   about: {
     host: { version: 1, open: () => openDialog('about-dialog') },
     title: 'DLang · the art of paying attention',
-    summary: 'Original scenes, multilingual observation and stories shared with friends. DLang is a local learning preview, not a financial launch.',
+    summary: 'Notice your world. Find your words. Share a story in another language.',
     sections: [
       { title: 'Notice · name · narrate', body: `Seven original seek-and-find scenes with twelve targets each. Study ${Object.keys(PACKS).map(languageName).join(', ')} together; seed translations await fluent-speaker review. Stories stay separate from the 84 equally weighted object answers. No retention or pronunciation benefit has been measured.` },
-      { title: 'A commitment, not an activated wager', body: 'Designed for future real $1 buy-ins, but payments are disabled pending transaction-flow and operator acceptance. The empty Base escrow is deployed and source-matched; no funded round was opened. This frontend offers no token approvals or transfers. Shared IPFS uploads request a clearly labeled message signature, not a financial transaction. Exact weekly qualification is 76/84. Local records are not financial authority.' },
+      { title: 'A shared weekly commitment', body: 'The Base escrow supports 1 USDC entries, steward-reviewed results and participant refunds. Entries require a configured on-chain round and verified wallet flows. Local practice records alone cannot authorize settlement. Shared IPFS uploads request a separately labeled authorization signature.' },
       { title: 'Honest horizons', body: 'A Supporter token is future/planned only: not minted, available or purchased here. Future $2/$3 harder levels, voice recognition, pronunciation and dialect learning are not active curricula. All Duolingo clients and legacy watchers remain disabled.' },
       { title: 'Your records · your choice', body: 'Three free practices per local day explore 1,095 procedural scenes. Wallet connection triggers read-only Ethereum ENS artwork lookup; own avatar/banner overrides stay local. Practice statistics and ungraded stories stay in this browser unless you explicitly publish practice history. Microphone starts only on Record. Native-speaker drafts become public CC BY 4.0 contributions only on Publish, and require steward review before voice rotation. Device speech is labeled synthesis. No live registry synchronization or speech-accuracy assessment.' }
     ]
@@ -132,6 +134,14 @@ narration = mountNarration({
 });
 mountWordMap({ storage, openDialog });
 conversation = mountConversation({ storage, report, getSceneContext });
+narration.setBlocked(true);
+conversation.setBlocked(true);
+window.addEventListener('dlang:panel', event => {
+  const blocked = scoredPracticeBlocked || event.detail.name !== 'voices';
+  narration.setBlocked(blocked);
+  conversation.setBlocked(blocked);
+  if (!blocked) { narration.refreshContext(); conversation.refreshContext(); }
+});
 mountTutorial({ openDialog, languages: Object.keys(PACKS).map(languageName) });
 $('about-languages').textContent = Object.keys(PACKS).map(languageName).join(' · ');
 function act(operation) {
