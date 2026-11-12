@@ -72,8 +72,8 @@ test('HTTP handler requires exact allowed origin, bounded body and explicit conf
 });
 test('trusted frontend service rejects redirects, malformed challenges and wallet switch', async () => {
   const { conversationConfig, createConversationService: client } = await import('../public/dlang/conversation-service.mjs');
-  const config = { endpoint: 'https://trusted.example/api/dlang/conversation', livekitOrigin: 'wss://media.example' };
-  for (const endpoint of ['http://evil.example/api/dlang/conversation', 'https://trusted.example/other',
+  const config = { endpoint: 'https://dlang.example/api/dlang/conversation', livekitOrigin: 'wss://media.example' };
+  for (const endpoint of ['http://evil.example/api/dlang/conversation', 'https://dlang.example/other',
     'https://user:pass@trusted.example/api/dlang/conversation']) {
     assert.throws(() => conversationConfig({ ...config, endpoint }, origin), /configuration/);
   }
@@ -113,7 +113,7 @@ test('provider transport creates private capped room with short audio-only grant
 
 test('wallet change cancels pending signature and never authorizes or captures', async () => {
   const { createConversationService: client, challengeMessage } = await import('../public/dlang/conversation-service.mjs');
-  const config = { endpoint: 'https://trusted.example/api/dlang/conversation', livekitOrigin: 'wss://media.example' };
+  const config = { endpoint: 'https://dlang.example/api/dlang/conversation', livekitOrigin: 'wss://media.example' };
   let release, signing;
   const entered = new Promise(resolve => { signing = resolve; }), requests = [];
   const wallet = { request: async ({ method }) => {

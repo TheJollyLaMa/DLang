@@ -2,9 +2,10 @@
 // ac8a9cc (Apache-2.0). DLang tokens are independent of all other app services.
 export function conversationConfig(raw, pageOrigin = globalThis.location?.origin) {
   if (!raw) return null;
-  const endpoint = new URL(raw.endpoint), media = new URL(raw.livekitOrigin);
+  const page = new URL(pageOrigin), endpoint = new URL(raw.endpoint, page), media = new URL(raw.livekitOrigin);
   const local = url => url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
   if (endpoint.protocol !== 'https:' && !(local(endpoint) && local(new URL(pageOrigin))) ||
+      endpoint.origin !== page.origin ||
       endpoint.username || endpoint.password || endpoint.search || endpoint.hash ||
       endpoint.pathname !== '/api/dlang/conversation' ||
       media.protocol !== 'wss:' || media.username || media.password || media.pathname !== '/' ||

@@ -1,3 +1,12 @@
+import { resolveArtwork } from './artwork.mjs';
+
+let bundledArtworkCatalog;
+try {
+  bundledArtworkCatalog = (await import('./artwork-catalog.json', { with: { type: 'json' } })).default;
+} catch {
+  bundledArtworkCatalog = null;
+}
+
 export const CONCEPTS = ['chair', 'table', 'book', 'cup', 'lamp', 'cat', 'bird', 'tree', 'flower', 'bicycle', 'basket', 'clock'];
 export const DESCRIPTIONS = {
   chair: 'Raised sitting surface with a backrest and four supports',
@@ -152,7 +161,25 @@ export function object(concept, v, color) {
   } : null;
   return `<g ${common}>${alternate?.[concept] || shapes[concept]}</g>`;
 }
-export function sceneSVG(scene, { study = false, correct = [] } = {}) {
+function currentArtworkViewport() {
+  return typeof matchMedia === 'function' && matchMedia('(max-width: 600px)').matches ? 'mobile' : 'desktop';
+}
+export function sceneSVG(scene, { study = false, correct = [], artworkCatalog = bundledArtworkCatalog,
+  artworkViewport = currentArtworkViewport() } = {}) {
+  const resolvedArtwork = scene.targets.map(target => [
+    target.id, resolveArtwork(artworkCatalog, target.concept, { sceneVersion: scene.sceneVersion ?? 2, viewport: artworkViewport })
+  ]);
+  const artworkByTarget = new Map(resolvedArtwork);
+  const artworkState = artworkCatalog?.version === 1 && artworkCatalog.status === 'unavailable'
+    && Array.isArray(artworkCatalog.batches) && artworkCatalog.batches.length === 0
+    ? { state: 'empty', reason: '' }
+    : artworkCatalog === null
+    ? { state: 'unavailable', reason: 'Artwork catalog could not be loaded; original illustrations remain in use.' }
+    : resolvedArtwork.some(([, result]) => result.available)
+      ? { state: 'approved', reason: '' }
+      : resolvedArtwork.some(([, result]) => result.state === 'unavailable')
+        ? { state: 'unavailable', reason: `${(resolvedArtwork.find(([, result]) => result.state === 'unavailable')?.[1].reason || 'No reviewed artwork is available').replace(/; keep the original scene renderer\.?$/, '').replace(/[.;]+$/, '')}; original illustrations remain in use.` }
+        : { state: 'fallback', reason: 'No approved artwork matches this scene version; original illustrations remain in use.' };
   const v = scene.variant;
   const decor = Array.from({length: 16}, (_, i) => `<path d="M${30+i*61} ${190+(i%3)*15} l22 -38 l26 38Z" fill="${i%2 ? '#739b8d' : '#a9bd9c'}" opacity=".55"/><path d="M${i*73} 554 l36 -15 l35 15" fill="none" stroke="#ffffff55"/>`).join('');
   const windows = Array.from({length:3}, (_,i)=> `<g transform="translate(${210+i*230} 55)"><path d="M0 140 V20 Q65 -20 130 20 V140Z" fill="${scene.sky}" stroke="${scene.accent}" stroke-width="9"/><path d="M65 0 V140 M0 75 H130" stroke="${scene.accent}" stroke-width="4"/><path d="M5 132 L60 96 L125 132" fill="#709b98" opacity=".5"/></g>`).join('');
@@ -188,7 +215,22 @@ export function sceneSVG(scene, { study = false, correct = [] } = {}) {
     const design = t.design ?? v;
     const color = scene.library ? `hsl(${(design * 47 + CONCEPTS.indexOf(t.concept) * 29 + 360) % 360} 37% 56%)` : scene.accent;
     const drawing = CONCEPTS.includes(t.concept) ? object(t.concept, design % 7, color) : extraObject(t.concept, design, color);
-    return `<g class="scene-target${done ? ' found' : ''}" data-target="${t.id}" role="button" tabindex="0" aria-label="${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept] || t.concept)}`}${done ? ', found' : ''}" transform="translate(${x} ${y})"><title>${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept] || t.concept)}`}</title><svg width="${w}" height="${h}" viewBox="-8 -8 116 116" overflow="hidden"><g transform="translate(50 50) rotate(${scene.library ? (design % 5 - 2) * 2 : 0}) scale(${scene.library ? .83 + (design % 8) * .022 : 1}) translate(-50 -50)">${drawing}</g></svg><rect class="hitbox" width="${w}" height="${h}" rx="7" fill="transparent" stroke="${done ? '#147c4b' : 'transparent'}" stroke-width="5"/></g>`;
+    const artwork = artworkByTarget.get(t.id);
+    const image = artwork?.available ? artwork.asset : null;
+    const artworkMarkup = image
+      ? `<image href="./dlang/${esc(image.files[artworkViewport].path)}" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(image.description)}" data-artwork-id="${esc(image.id)}" data-artwork-version="${image.artVersion}" data-artwork-batch="${esc(artwork.batchId)}"><title>${esc(image.description)}</title></image><metadata data-artwork-provenance="${esc(JSON.stringify({ provider: image.source.provider, model: image.source.model, jobId: image.source.jobId, rights: image.source.rights, visualReview: image.review.visual, languageReview: image.review.language }))}"/>`
+      : drawing;
+    const label = `${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept] || t.concept)}`}${image ? ` — ${esc(image.description)}` : ''}${done ? ', found' : ''}`;
+    return `<g class="scene-target${done ? ' found' : ''}" data-target="${t.id}"${image ? ` data-artwork-id="${esc(image.id)}" data-artwork-version="${image.artVersion}" data-artwork-batch="${esc(artwork.batchId)}"` : ''} role="button" tabindex="0" aria-label="${label}" transform="translate(${x} ${y})"><title>${label}</title><svg width="${w}" height="${h}" viewBox="-8 -8 116 116" overflow="hidden"><g transform="translate(50 50) rotate(${scene.library ? (design % 5 - 2) * 2 : 0}) scale(${scene.library ? .83 + (design % 8) * .022 : 1}) translate(-50 -50)">${image ? `<g data-artwork-fallback="procedural">${drawing}</g>${artworkMarkup}` : drawing}</g></svg><rect class="hitbox" width="${w}" height="${h}" rx="7" fill="transparent" stroke="${done ? '#147c4b' : 'transparent'}" stroke-width="5"/></g>`;
   }).join('');
-  return `<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" overflow="hidden" role="group" aria-label="${esc(scene.title)}: twelve interactive concepts. Focus a concept and press Enter or Space to select it."><rect width="1000" height="600" fill="${scene.sky}"/><rect y="235" width="1000" height="365" fill="${scene.ground}"/>${backdrops[v]}${texture}<path d="M0 245 H1000 M0 410 L1000 440" stroke="${scene.accent}" stroke-width="5" opacity=".4"/>${decor}<path d="M0 15 Q500 ${v%2 ? 175 : 80} 1000 15" fill="none" stroke="${scene.accent}" stroke-width="3"/>${Array.from({length:12},(_,i)=>`<path d="M${i*89} ${30+Math.sin(i/4)*24} l25 0 l-12 30Z" fill="${i%2 ? '#e6ab60' : '#d48391'}"/>`).join('')}<g opacity=".65"><ellipse cx="520" cy="561" rx="90" ry="12" fill="#5c6e5c"/><path d="M890 290 H976 V390 H890Z" fill="#a87e60"/><path d="M900 298 H965 M900 322 H965 M900 346 H965 M900 370 H965" stroke="#d7bb8a" stroke-width="6"/><path d="M15 365 L92 340 L98 430 L20 447Z" fill="#d9b786"/><path d="M28 378 l46 -15 M30 397 l47 -15" stroke="#7d7765" stroke-width="5"/></g>${props}${targets}</svg>`;
+  const artworkNotice = artworkState.reason
+    ? `<desc>Artwork status: ${esc(artworkState.reason)}</desc><title>Artwork status: ${esc(artworkState.reason)}</title>`
+    : artworkState.state === 'approved'
+      ? '<desc>Approved, version-compatible artwork is displayed with procedural object fallback.</desc>'
+      : '';
+  const artworkAttributes = artworkState.state === 'empty'
+    ? ''
+    : ` data-artwork-state="${artworkState.state}" data-artwork-reason="${esc(artworkState.reason)}"`;
+  const artworkLabel = artworkState.state === 'empty' ? '' : ` Artwork status: ${esc(artworkState.reason || 'approved art shown with original fallback')}.`;
+  return `<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" overflow="hidden" role="group"${artworkAttributes} aria-label="${esc(scene.title)}: twelve interactive concepts.${artworkLabel} Focus a concept and press Enter or Space to select it.">${artworkNotice}<rect width="1000" height="600" fill="${scene.sky}"/><rect y="235" width="1000" height="365" fill="${scene.ground}"/>${backdrops[v]}${texture}<path d="M0 245 H1000 M0 410 L1000 440" stroke="${scene.accent}" stroke-width="5" opacity=".4"/>${decor}<path d="M0 15 Q500 ${v%2 ? 175 : 80} 1000 15" fill="none" stroke="${scene.accent}" stroke-width="3"/>${Array.from({length:12},(_,i)=>`<path d="M${i*89} ${30+Math.sin(i/4)*24} l25 0 l-12 30Z" fill="${i%2 ? '#e6ab60' : '#d48391'}"/>`).join('')}<g opacity=".65"><ellipse cx="520" cy="561" rx="90" ry="12" fill="#5c6e5c"/><path d="M890 290 H976 V390 H890Z" fill="#a87e60"/><path d="M900 298 H965 M900 322 H965 M900 346 H965 M900 370 H965" stroke="#d7bb8a" stroke-width="6"/><path d="M15 365 L92 340 L98 430 L20 447Z" fill="#d9b786"/><path d="M28 378 l46 -15 M30 397 l47 -15" stroke="#7d7765" stroke-width="5"/></g>${props}${targets}</svg>`;
 }

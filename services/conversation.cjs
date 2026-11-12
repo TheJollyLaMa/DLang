@@ -116,8 +116,22 @@ function createConversationService({ allowedOrigins = [], allowedWallets = [], t
   };
 }
 
-async function handleConversationRequest(request, response, { service, allowedOrigins = [] } = {}) {
+async function handleConversationRequest(request, response, { service, allowedOrigins = [], livekitOrigin = '' } = {}) {
   const url = new URL(request.url, 'http://localhost'), prefix = '/api/dlang/conversation/';
+  if (url.pathname === '/api/dlang/conversation/config') {
+    const origin = String(request.headers.origin || '');
+    const allowed = !origin || allowedOrigins.includes(origin);
+    const headers = { 'content-type': 'application/json', 'cache-control': 'no-store', vary: 'origin',
+      ...(origin && allowed ? { 'access-control-allow-origin': origin } : {}) };
+    const send = (status, data) => { response.writeHead(status, headers); response.end(JSON.stringify(data)); };
+    if (!allowed) { send(403, { configured: false, error: 'Origin not allowed.' }); return true; }
+    if (request.method !== 'GET') { send(405, { configured: false, error: 'GET required.' }); return true; }
+    if (!service?.configured || !livekitOrigin) {
+      send(503, { configured: false, error: 'Private conversation unavailable.' }); return true;
+    }
+    send(200, { configured: true, endpoint: '/api/dlang/conversation', livekitOrigin });
+    return true;
+  }
   if (!url.pathname.startsWith(prefix)) return false;
   const origin = String(request.headers.origin || ''), allowed = allowedOrigins.includes(origin);
   const headers = { 'content-type': 'application/json', 'cache-control': 'no-store', vary: 'origin',

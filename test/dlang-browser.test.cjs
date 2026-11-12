@@ -109,8 +109,15 @@ test('ENS artwork resolves against connected wallet; local artwork and profile s
 });
 test('voice microphone is explicit, draft survives reload, native/public upload is explicit, delete remains local',async t=>{
   const {page,external,errors}=await setup(t,{microphone:true});
+  const openVoiceStudio=async()=>{
+    // The static button can be visible before mountAudio hydrates it after reload.
+    await page.locator('#voice-language option[value="fr"]').waitFor({state:'attached'});
+    await page.click('#voice-open');
+    await page.locator('#voice-dialog[open]').waitFor({state:'visible'});
+    await page.selectOption('#voice-language','fr');
+  };
   await openTool(page,'practice');
-  await page.click('#voice-open');await page.selectOption('#voice-language','fr');
+  await openVoiceStudio();
   assert.equal(await page.locator('#voice-publish').isDisabled(),true);
   await page.click('#voice-record');
   await page.waitForFunction(()=>document.getElementById('voice-record').textContent==='Stop recording');
@@ -118,8 +125,7 @@ test('voice microphone is explicit, draft survives reload, native/public upload 
   await page.click('#voice-record');
   await page.waitForFunction(()=>!document.getElementById('voice-preview').disabled);
   assert.deepEqual(external,[],'recording does not upload');
-  await page.reload();await openTool(page,'practice');await page.locator('#voice-open').waitFor();
-  await page.click('#voice-open');await page.selectOption('#voice-language','fr');
+  await page.reload();await openTool(page,'practice');await openVoiceStudio();
   await page.waitForFunction(()=>!document.getElementById('voice-preview').disabled);
   await page.click('#voice-publish');assert.match(await page.locator('#voice-status').textContent(),/public speaker credit/);
   await page.fill('#voice-speaker','Test speaker');await page.click('#voice-publish');
@@ -137,14 +143,27 @@ test('three-a-day local midnight caps the deadline; another tab cannot fork or s
   await page.clock.pauseAt(new Date(late.getTime()+1000));
   const peer=await context.newPage();
   await peer.goto(base+'/dlang.html');await openTool(peer,'practice');
+  await peer.evaluate(()=>{
+    window.__crossTabStatus=[];
+    const status=document.getElementById('dlang-status');
+    new MutationObserver(records=>{
+      for(const record of records)for(const node of record.addedNodes)window.__crossTabStatus.push(node.textContent);
+    }).observe(status,{childList:true});
+  });
   await page.click('#practice-start');
   const attempt=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
   assert.equal(attempt.deadline,new Date(2026,0,2).getTime());
   assert.ok(attempt.deadline-attempt.started>25000 && attempt.deadline-attempt.started<=30000);
-  await peer.waitForFunction(()=>document.getElementById('dlang-status').textContent.includes('another tab'));
+  // Use Playwright's locator polling: this context's animation clock is paused.
+  await peer.locator('#practice-start:disabled').waitFor({state:'attached'});
+  // Narration initialization can replace this shared live region after the warning.
+  assert.ok(await peer.evaluate(()=>window.__crossTabStatus.some(message=>message.includes('another tab'))));
   assert.equal(await peer.locator('#practice-start').isDisabled(),true);
+  assert.equal(await peer.locator('#practice-scene [data-target]').count(),0);
   await peer.reload();await openTool(peer,'practice');await peer.locator('#practice-scene [data-target]').first().waitFor();
-  await page.clock.runFor(30001);
+  // Both resumed tabs must cross midnight before either completion timer fires.
+  await page.clock.setSystemTime(new Date(attempt.deadline));
+  await page.clock.runFor(501);
   await page.waitForFunction(()=>!localStorage.getItem('dlang-practice-active-v1'));
   await peer.waitForFunction(()=>!document.querySelector('#practice-scene [data-target]'));
   const state=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-v1')));

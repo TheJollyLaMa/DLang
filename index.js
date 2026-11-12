@@ -22,7 +22,8 @@ function createServer(options = {}) {
     res.setHeader('Cache-Control', 'no-store');
     if (await handleConversationRequest(req, res, {
       service: options.conversationService,
-      allowedOrigins: options.conversationOrigins || []
+      allowedOrigins: options.conversationOrigins || [],
+      livekitOrigin: options.conversationLivekitOrigin || ''
     })) return;
     if (!['GET', 'HEAD'].includes(req.method)) {
       res.writeHead(405, { Allow: 'GET, HEAD' }); return res.end('DLang payment and mutation endpoints are disabled.');
@@ -40,7 +41,8 @@ function createServer(options = {}) {
     }
     if (pathname === '/health') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      return res.end(req.method === 'HEAD' ? '' : JSON.stringify({ product: 'DLang', payments: false, deployedContract: null }));
+      return res.end(req.method === 'HEAD' ? '' : JSON.stringify({ product: 'DLang', payments: false,
+        privateConversationConfigured: options.conversationService?.configured === true, deployedContract: null }));
     }
     const relative = pathname === '/' || pathname === '/index.html' ? 'dlang.html' : pathname.replace(/^\/+/, '');
     const file = path.resolve(root, relative);

@@ -49,8 +49,8 @@ for (const width of [1280, 375]) test(`${width}px white rabbit walks through rea
     if (index === 0) assert.match(await page.locator('#rabbit-body').textContent(), /Nothing.*starts your timer/);
     if (index === 4) assert.match(await page.locator('#rabbit-body').textContent(), /No paid round is open/);
     if (index === 5) assert.match(await page.locator('#rabbit-body').textContent(), /0.50.*0.50.*not active/);
-    if (index === 6) assert.match(await page.locator('#rabbit-body').textContent(), /administrator-withdrawable.*never holder dividends/);
-    if (index === 7) assert.match(await page.locator('#rabbit-body').textContent(), /tested, not deployed or funded/);
+    if (index === 6) assert.match(await page.locator('#rabbit-body').textContent(), /recover all funds.*holder backing, dividends and weekly refunds.*permanently retiring/);
+    if (index === 7) assert.match(await page.locator('#rabbit-body').textContent(), /Missing successor evidence shows not configured.*No automatic migration/);
     await page.locator('#rabbit-try').click();
     assert.equal(await page.locator('#rabbit-dialog').evaluate(dialog => dialog.open), false);
     if (item.personal) {

@@ -18,7 +18,14 @@ test('typed prompts use only scene concepts and never score or invent a response
 test('offline typed practice is bounded, remountable and cleared on block and scene change', async t => {
   const dir = path.join(__dirname, '../public');
   const server = http.createServer((req, res) => {
-    if (req.url === '/') { res.end('<div id="conversation-root"></div>'); return; }
+    if (req.url === '/') {
+      res.end('<script defer src="/dlang/vendor/livekit-client-2.24.0.umd.js"></script><div id="conversation-root"></div>');
+      return;
+    }
+    if (req.url === '/dlang/vendor/livekit-client-2.24.0.umd.js') {
+      res.setHeader('content-type', 'text/javascript');
+      fs.createReadStream(path.join(dir, req.url)).pipe(res); return;
+    }
     if (!/^\/dlang\/[a-z-]+\.mjs$/.test(req.url)) { res.writeHead(404).end(); return; }
     res.setHeader('content-type', 'text/javascript');
     fs.createReadStream(path.join(dir, req.url)).pipe(res);
@@ -31,6 +38,7 @@ test('offline typed practice is bounded, remountable and cleared on block and sc
   const requests = [];
   page.on('request', request => requests.push(request.url()));
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
+  assert.equal(await page.evaluate(() => typeof window.LivekitClient?.Room), 'function');
   await page.evaluate(async () => {
     const { mountConversation } = await import('/dlang/conversation.mjs');
     window.scene = { sceneId: 's1', sceneVersion: 'v1', title: 'Kitchen', level: 1, language: 'es', concepts: ['cat', 'cup'] };
@@ -77,7 +85,7 @@ test('offline typed practice is bounded, remountable and cleared on block and sc
     }
     window.practice = mountConversation({
       getSceneContext: () => window.scene,
-      config: { endpoint: 'https://trusted.example/api/dlang/conversation', livekitOrigin: 'wss://audio.example' },
+      config: { endpoint: `${location.origin}/api/dlang/conversation`, livekitOrigin: 'wss://audio.example' },
       wallet, sdk: { Room, RoomEvent: {}, Track: { Source: { Microphone: 'mic' } },
         createLocalAudioTrack: async () => {
           window.liveCalls.push('capture');

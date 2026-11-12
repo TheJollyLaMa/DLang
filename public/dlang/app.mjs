@@ -135,7 +135,16 @@ narration = mountNarration({
   }
 });
 mountWordMap({ storage, openDialog });
-conversation = mountConversation({ storage, report, getSceneContext });
+let conversationRuntimeConfig = null;
+try {
+ const response = await fetch('/api/dlang/conversation/config', {
+   credentials: 'same-origin', cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(3000)
+ });
+ if (!response.ok) throw Error();
+ const candidate = await response.json();
+ if (candidate?.configured === true) conversationRuntimeConfig = candidate;
+} catch { /* Missing operator configuration keeps voice explicitly unavailable. */ }
+conversation = mountConversation({ storage, report, getSceneContext, config: conversationRuntimeConfig });
 narration.setBlocked(true);
 conversation.setBlocked(true);
 window.addEventListener('dlang:panel', event => {
@@ -246,7 +255,9 @@ function renderLabels() {
 }
 function renderStudy() {
   const scene = SCENES[+$('scene-select').value];
-  $('study-scene').innerHTML = sceneSVG(scene, { study: !recognition });
+  const container = $('study-scene');
+  container.innerHTML = sceneSVG(scene, { study: !recognition });
+  announceArtworkIssue(container);
   bindObjects($('study-scene'), scene, true); objectList($('study-objects'), scene, !recognition);
   // Recognition controls must still use the study handler without giving labels.
   if (recognition) {
@@ -254,6 +265,19 @@ function renderStudy() {
     bindObjects($('study-objects'), scene, true);
   }
   if (!recognition) renderLabels();
+}
+let lastArtworkAnnouncement = '';
+function announceArtworkIssue(container) {
+  const reason = container.querySelector('svg')?.dataset.artworkReason || '';
+  if (!reason) { lastArtworkAnnouncement = ''; return; }
+  if (reason === 'No reviewed artwork is published; original illustrations remain in use.') {
+    lastArtworkAnnouncement = '';
+    return;
+  }
+  if (reason !== lastArtworkAnnouncement) {
+    lastArtworkAnnouncement = reason;
+    report(reason);
+  }
 }
 $('scene-select').onchange = () => {
   sharedScene = null; recognition = null; $('recognition-status').textContent = ''; renderStudy();
@@ -318,8 +342,10 @@ function render() {
       $('daily-title').textContent = SCENES[day].title;
       const signature = JSON.stringify([day, attempt.correct, attempt.status]);
       if (signature !== lastAttempt) {
-        $('daily-scene').innerHTML = sceneSVG(SCENES[day], { correct: attempt.correct });
-        bindObjects($('daily-scene'), SCENES[day], false); objectList($('daily-objects'), SCENES[day], false, attempt.correct);
+        const container = $('daily-scene');
+        container.innerHTML = sceneSVG(SCENES[day], { correct: attempt.correct });
+        announceArtworkIssue(container);
+        bindObjects(container, SCENES[day], false); objectList($('daily-objects'), SCENES[day], false, attempt.correct);
         lastAttempt = signature;
       }
     }

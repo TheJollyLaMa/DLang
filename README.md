@@ -117,14 +117,21 @@ The optional service exports `createConversationTransport`,
 backend-only credentials, exact allowed origins, admitted wallets and quotas;
 pass the service, origins and exact WSS origin to `createServer` as
 `conversationService`, `conversationOrigins` and `conversationLivekitOrigin`.
-The default server does not configure this service.
+The server now supports validated operator environment configuration and serves
+same-origin browser configuration. A pinned, self-hosted LiveKit client is
+included with its license. See [voice operations](docs/Conversation-Operations.md)
+for credentials, allowed origins, admission, costs and deployment acceptance.
+Pages alone cannot run the backend. Without operator configuration, audio remains
+explicitly unavailable and typed practice still works. Local end-to-end tests use
+real wallet signatures with a fake media transport; they do not establish live
+two-device audio acceptance or speech scoring.
 
-For private audio, load a licensed same-origin LiveKit client SDK exposing
-`window.LivekitClient` and set `window.DLangConversationConfig` with `endpoint`
-(the service URL ending `/api/dlang/conversation`) and `livekitOrigin`
-(the exact `wss://` origin). Use one service instance per LiveKit project;
-allow that exact WSS origin in the hosting CSP. Pages alone cannot run the
-backend. Without configuration the UI stays in typed practice.
+The [artwork workflow](docs/Artwork-Workflow.md) validates monthly batches of 12
+reviewed variants, provenance and scene-version compatibility before import.
+Approved variants render inside existing object targets without rebinding recipe
+identities; absent or invalid assets retain procedural illustrations. The shipped
+catalog is empty. No Runway generation, monthly spending or background scheduler
+is enabled; real assets, budget approval and human review remain required.
 
 ## Run and test
 

@@ -8,9 +8,14 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --test test/*.test.cjs",
+    "build:conversation-client": "node scripts/build-conversation-client.cjs",
     "build:library": "node scripts/build-library.mjs",
     "test:contracts": "npm test --prefix contract-tools"
   },
-  "dependencies": { "ethers": "6.17.0" },
+  "dependencies": {
+    "ethers": "6.17.0",
+    "livekit-client": "2.24.0",
+    "livekit-server-sdk": "2.19.3"
+  },
   "devDependencies": { "playwright": "1.64.1" }
 }
