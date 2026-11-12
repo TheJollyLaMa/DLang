@@ -1,5 +1,31 @@
 # Private conversation operations
 
+## Prototype Render deployment
+
+The dedicated prototype is hosted at <https://dlang-stewards.onrender.com/>.
+Render service `srv-dbr277c9v7es73egk230` uses one Ohio instance on the
+$7/month 0.5 CPU / 512 MB plan, deploying `main` from this repository.
+Build: `npm ci --omit=dev --ignore-scripts --no-audit --no-fund`.
+Start: `HOST=0.0.0.0 node server.js`; Render supplies `PORT`.
+
+The first-month prototype allocation began November 12, 2026. **Review and
+explicitly downgrade or suspend by December 12, 2026** if continuing is not
+approved. Render renews automatically; no automatic cancellation is installed.
+Do not delete the service or its secrets as a substitute for a reviewed shutdown.
+
+Server-only LiveKit credentials are managed in Render environment variables.
+The initial voice allowlist is the existing five-wallet DLang pilot roster,
+with one room, two concurrent sessions and twenty rooms/day. Paid rounds remain
+closed. Local `.env.services` and the derived `.env.render` are private,
+git-ignored files, not deployable public assets; never import a local loopback
+`HOST` override into Render.
+
+Dated November 12 acceptance: public landing and `/health` return 200,
+`privateConversationConfigured` is true, the same-origin conversation config
+returns 200, and a read-only provider request accepted the LiveKit credentials.
+No room was created for that check. These observations are not continuous
+monitoring or two-device media acceptance.
+
 Private invited audio is disabled unless an operator supplies all of the backend
 settings below. The operator wallet list is an admission allowlist, not proof
 that a participant has consented. Wallet signatures authorize one short-lived
