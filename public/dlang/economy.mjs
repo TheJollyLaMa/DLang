@@ -121,7 +121,7 @@ export function fundingStatus() {
     asset: 'Ommm',
     polygonReference: '0x1a74f818F1b42dBFcE449c7Fa93B107C6e4A2433',
     baseAsset: null,
-    reason: 'No verified Ommm network/deployment, sponsor pool, settlement verifier or authorized signer is configured.',
+    reason: 'Narrator payments have no allocated budget or configured settlement authority. The learning-gem reserve is separate.',
     fundedAuthorized: canAuthorizeFundedPayment()
   };
 }

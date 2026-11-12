@@ -127,3 +127,12 @@ decent-header{display:block;overflow-x:clip}
   .learning-panel .card{padding:1rem}
   .landing-footer{justify-content:center;text-align:center;gap:.3rem}
 }
+@keyframes ommm-received {
+  0%, 100% { box-shadow: 0 0 0 transparent; }
+  35% { box-shadow: 0 0 1.8rem #a6e2cb66; }
+}
+#ommm-profile.gem-received { animation: ommm-received 1.6s ease-out; }
+#ommm-profile a { overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) {
+  #ommm-profile.gem-received { animation: none; }
+}

@@ -96,6 +96,19 @@
   <img id="identity-banner" class="profile-banner" alt="Your profile banner" hidden>
   <div class="identity-heading"><img id="identity-image" src="./dlang/art/rabbit.svg" alt="Your profile avatar" width="96" height="96" referrerpolicy="no-referrer"><div><h3 id="identity-title">Your observation notebook</h3><p id="identity-wallet">Guest notebook</p><p id="identity-links"></p></div></div>
   <div id="personal-stats" class="personal-stats" aria-label="Your practice statistics"></div><p class="quiet">Actual self-review activity saved in this browser. Not verified speech accuracy or financial results.</p>
+  <section id="ommm-profile" class="history-section" aria-labelledby="ommm-title">
+    <h3 id="ommm-title">My Ommm gems · Base</h3>
+    <p><strong data-ommm="balance">—</strong><br><span data-ommm="rate">—</span></p>
+    <p data-ommm="reserve" class="quiet"></p>
+    <a data-ommm="pool" target="_blank" rel="noopener noreferrer" hidden>Sponsor reserve</a>
+    <button type="button" data-ommm="refresh">Refresh confirmed balance</button>
+    <label><input type="checkbox" data-ommm="sound"> Gentle receipt sound</label>
+    <p class="quiet">Only send Base USDC to the sponsor reserve, never ETH or Ommm. Gifts increase backing for all gems. Weekly stakes and narrator earnings are separate. Ommm on Polygon is a separate deployment, not bridged here.</p>
+    <label>Ommm to redeem <input data-ommm="amount" inputmode="decimal" autocomplete="off" placeholder="1"></label>
+    <p data-ommm="quote"></p><button type="button" data-ommm="redeem" disabled>Burn gems for USDC</button>
+    <p data-ommm="status" role="status" aria-live="polite"></p>
+    <a data-ommm="transaction" target="_blank" rel="noopener noreferrer" hidden>Inspect transaction</a>
+  </section>
   <form id="identity-form"><label>Display name <input id="identity-name" maxlength="60" autocomplete="off"></label>
   <label>ENS name <input id="identity-ens" maxlength="100" placeholder="yourname.eth" autocomplete="off"></label><button type="button" id="identity-resolve">Load ENS avatar &amp; banner</button>
   <div class="artwork-inputs"><label>Your avatar <input id="identity-photo" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Your banner <input id="identity-banner-file" type="file" accept="image/png,image/jpeg,image/webp"></label></div><p class="quiet">Your images override ENS artwork. PNG/JPEG/WebP up to 192 KiB and 2048 × 2048, saved locally. ENS artwork loads from its record/gateway after lookup.</p><button type="button" id="identity-remove-photo">Use ENS avatar</button><button type="button" id="identity-remove-banner">Use ENS banner</button>

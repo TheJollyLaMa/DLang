@@ -59,7 +59,7 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
   GrannyLyn and Bobdub by explicit steward direction. It is not live registration
   sync or wallet-control/financial authorization.
 
-**Payments remain disabled.** Local clocks, answers and history are editable,
+**Weekly payments remain unavailable.** Local clocks, answers and history are editable,
 not financial evidence. The [empty trial escrow](docs/Trial-Contract.md) is
 deployed on Base and exactly source-matched by Sourcify. No funded round was opened.
 Trusted score/operator review and real transaction-flow acceptance remain launch gates. No Supporter
@@ -78,6 +78,14 @@ including tiny balances; usefulness votes are separate from correctness reviews.
 Ommm settlement and DNFT claims remain disabled until assets, funding and
 authorized signers are configured. The new narration/reward contract is tested
 locally, not deployed.
+
+Learning gems have a separate [Base Ommm reserve](docs/Ommm-Reserve.md):
+4,400 initial inventory tokens, 0.44 USDC bootstrap, proportional burn/redemption,
+steward-reviewed awards and non-diluting future mints after reaching 1 USDC
+backing. The notebook reads confirmed balances/backing on explicit refresh and
+offers wallet-confirmed redemption. Actual activation requires the confirmed
+public deployment manifest; neither local practice nor narrator accruals can
+issue or spend these gems.
 
 Scene-grounded typed conversation works without an account or a transcript store.
 Private audio is opt-in, starts listen-only and stops during scored attempts.

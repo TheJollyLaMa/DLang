@@ -13,6 +13,7 @@ import { mountWordMap } from './wordmap.mjs';
 import { mountConversation } from './conversation.mjs';
 import { mountNarration } from './narration.mjs';
 import { mountLanding } from './landing.mjs';
+import { mountOmmm } from './ommm.mjs';
 const landing = mountLanding();
 const $ = id => document.getElementById(id);
 const languageName = tag => LANGUAGE_NAMES[tag] || tag;
@@ -97,6 +98,7 @@ globalThis.DECENT_CONFIG = {
 const { DecentHead } = await import('../vendor/decent-head/2.0.0/js/main.js');
 const report = message => { $('dlang-status').textContent = message; };
 const personal = mountPersonal({ storage, report });
+mountOmmm({ root: $('ommm-profile'), getWallet: () => DecentHead.getWallet().snapshot() });
 mountWords({ storage });
 const header = document.querySelector('decent-header');
 header.addEventListener('decenthead:menu', event => {
