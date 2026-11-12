@@ -154,6 +154,10 @@ loopback port. Browser tests need Playwright Chromium already available, or
 `npx playwright install chromium` after a missing-browser failure. Contract tests
 run entirely on local Ganache; no chain writes or private keys.
 
+Playwright's clock belongs to the browser context, not an individual tab. The
+midnight/multi-tab test pauses that shared clock before opening its peer; do not
+reinstall the clock for the peer or let real elapsed time drive its deadline.
+
 The optional fork test reads public Base state and sends transactions only to
 local Ganache. It passed against native USDC at Base block 55819909 for entry,
 settlement, owner claim and shutdown refund. `BASE_RPC_URL` can select an RPC;
