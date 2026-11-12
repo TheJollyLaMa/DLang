@@ -134,7 +134,8 @@ test('three-a-day local midnight caps the deadline; another tab cannot fork or s
   const {page,context,base,errors}=await setup(t);
   await openTool(page,'practice');
   const late=new Date(2026,0,1,23,59,30);await page.clock.setSystemTime(late);
-  const peer=await context.newPage();await peer.clock.install({time:late});
+  await page.clock.pauseAt(new Date(late.getTime()+1000));
+  const peer=await context.newPage();
   await peer.goto(base+'/dlang.html');await openTool(peer,'practice');
   await page.click('#practice-start');
   const attempt=await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-active-v1')));
