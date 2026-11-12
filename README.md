@@ -95,6 +95,12 @@ A new weekly successor allocates half of finalized forfeitures to this reserve
 and half to survivors (carry when none qualify). Existing pool/weekly contracts,
 balances and frontend configuration remain unchanged pending migration approval.
 
+The nine-hop white rabbit tour walks through free Discover practice, languages,
+growing levels, Voices, a no-payment first-week rehearsal, the tested 50/50 split,
+dividend resets and the notebook. Its actions open the actual icon panels without
+starting timers, connecting a wallet, recording or submitting transactions. The
+tour distinguishes the live original pool from the still-unfunded successor.
+
 Scene-grounded typed conversation works without an account or a transcript store.
 Private audio is opt-in, starts listen-only and stops during scored attempts.
 The optional service exports `createConversationTransport`,

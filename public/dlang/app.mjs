@@ -144,7 +144,7 @@ window.addEventListener('dlang:panel', event => {
   conversation.setBlocked(blocked);
   if (!blocked) { narration.refreshContext(); conversation.refreshContext(); }
 });
-mountTutorial({ openDialog, languages: Object.keys(PACKS).map(languageName) });
+mountTutorial({ openDialog, languages: Object.keys(PACKS).map(languageName), showPanel: name => landing.show(name) });
 $('about-languages').textContent = Object.keys(PACKS).map(languageName).join(' · ');
 function act(operation) {
   try { const result = operation(); render(); return result; }

@@ -367,11 +367,11 @@ for(const width of [1280,375])test(`${width}px receiving editorial About, five-l
   await page.locator('#about-rabbit').click();
   await page.locator('#rabbit-dialog').waitFor({state:'visible'});
   assert.equal(await page.locator('#about-dialog').evaluate(n=>n.open),false);
-  assert.match(await page.locator('#rabbit-progress').textContent(),/1 of 5/);
+  assert.match(await page.locator('#rabbit-progress').textContent(),/1 of 9/);
   assert.equal(await page.locator('#rabbit-back').isDisabled(),true);
   await page.click('#rabbit-next');assert.match(await page.locator('#rabbit-body').textContent(),/Hindi|हिन्दी/);
-  await page.click('#rabbit-back');assert.match(await page.locator('#rabbit-progress').textContent(),/1 of 5/);
-  for(let i=0;i<4;i++)await page.click('#rabbit-next');
+  await page.click('#rabbit-back');assert.match(await page.locator('#rabbit-progress').textContent(),/1 of 9/);
+  for(let i=0;i<8;i++)await page.click('#rabbit-next');
   assert.match(await page.locator('#rabbit-next').textContent(),/Finish/);
   if(process.env.DLANG_EVIDENCE_DIR)await page.locator('#rabbit-dialog').screenshot({path:path.join(process.env.DLANG_EVIDENCE_DIR,`dlang-rabbit-${width}.png`)});
   await page.click('#rabbit-try');
@@ -406,7 +406,7 @@ for(const width of [1280,375])test(`${width}px receiving editorial About, five-l
   await page.keyboard.press('Escape');
   await page.locator('.tool-rail [data-open-panel="week"]').click();
   await page.click('#rabbit-open');
-  for(let i=0;i<4;i++)await page.click('#rabbit-next');
+  for(let i=0;i<8;i++)await page.click('#rabbit-next');
   await page.click('#rabbit-next');assert.equal(await page.locator('#rabbit-dialog').evaluate(n=>n.open),false);
   await openTool(page,'week');
   assert.equal(await page.getByRole('button',{name:'Real $1 buy-in unavailable',exact:true}).isDisabled(),true);

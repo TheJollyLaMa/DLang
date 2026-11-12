@@ -1,11 +1,15 @@
-export function mountTutorial({ openDialog, languages }) {
+export function mountTutorial({ openDialog, languages, showPanel }) {
   const $ = id => document.getElementById(id);
   const steps = [
-    { title: 'Follow a detail, not a streak', text: 'Explore seven original DLang scenes: the same twelve concepts, new visual versions. Study is free and does not need a wallet.', area: 'study' },
+    { title: 'Your first little discovery', text: 'No wallet, payment or perfect streak needed. Open Discover, choose a language, then press Begin when you are ready for a two-minute practice. Point at an object, listen, and say what you see. Mark Remembered or Again honestly. Nothing in this tour starts your timer.', area: 'practice' },
     { title: 'Many languages can share one picture', text: `Select an object to reveal ${languages.join(', ')} together. Pinyin is a pronunciation reading aid only; scored Mandarin answers use Chinese characters. All packs are seed content awaiting fluent-speaker review.`, area: 'study' },
-    { title: 'Look again in a fresh scene', text: 'Try a fresh exemplar to practice recognition with labels hidden. Use keyboard Enter/Space, large object-list buttons or magnification. This practice is untimed, ungraded and retryable.', area: 'study' },
-    { title: 'Go means the clock starts', text: 'The scheduled local pilot uses one attempt per day and your locked enrollment language. Explicit Go gives at most 120 seconds, shortened at the visible daily cutoff. Reload keeps the original deadline. Missed answers are zero; 76 of 84 qualifies in the model. Real buy-ins remain disabled.', area: 'week' },
-    { title: 'A story is more than a score', text: 'Stories are private local notes, never graded. Three flexible free practices per local day add spaced self-review and tap-to-hear audio. The right ankh opens actual browser statistics, ENS avatar/banner and your own image overrides. Wallet connection triggers read-only ENS lookup. Voice recording and public IPFS publishing are separate explicit actions; community voices require steward review. The left ankh explains pilot gates, not administrator authority.', area: 'personal' }
+    { title: 'Small words grow into a world', text: 'Words opens six growing levels: home objects, the wider world, numbers, feelings, colors and first verbs. Explore 72 concepts across the family word map and preview another day of scenes. Your imported word library stays in your browser. Three free practices per local day leave room to come back tomorrow.', area: 'library' },
+    { title: 'Listen, echo, then tell the story', text: 'Voices holds scene narration and typed conversations. Start with “I see a bird,” echo it, then build a longer description yourself. Device speech is labeled synthesis; native-speaker contributions need two approvals from three assigned language-qualified reviewers. Record and Publish are separate choices. This tour never activates your microphone or shares a recording.', area: 'voices' },
+    { title: 'Our first week: rehearse before money', text: 'No paid round is open. Together shows the local weekly rehearsal: choose a supported language and inspect the schedule. Explicit Go starts at most 120 seconds for twelve object names per day; reloading keeps the deadline. The weekly model qualifies at 76 of 84 answers. Local enrollment and scores are not an on-chain entry or payment authority.', area: 'week' },
+    { title: 'Half for friends, half for the staircase', text: 'The tested weekly successor splits each finalized nonqualifier’s 1 USDC: 0.50 to survivors and 0.50 to the gem reserve. Survivors also recover their own principal. If nobody qualifies, their half carries forward without another split. Cancelled or timed-out unsettled rounds refund full principal. These new terms are not active in the old escrow; this rehearsal costs nothing.', area: 'week' },
+    { title: 'Gems climb, then share the surplus', text: 'The tested staircase climbs through 0.0001, 0.001, 0.01, 0.10 and 1 USDC backing per Ommm. At 2, surplus becomes claimable USDC dividends while backing returns to 1; holders keep their gems. Earned dividends survive transfers and burns. Inventory dividends are administrator-withdrawable in the test version, never holder dividends or token backing. This is reserve accounting, not a promised market price.', area: 'personal' },
+    { title: 'What is live, and what is waiting', text: 'The original Base pool holds 4,400 unawarded Ommm backed by 0.44 USDC: 0.0001 each. It has no staircase dividends and cannot release its inventory backing into a successor. New staircase contracts are tested, not deployed or funded. The notebook reads the original pool only after you connect and refresh. Free practice does not automatically award gems. No paid round or migration is activated by this tour.', area: 'personal' },
+    { title: 'A story is more than a score', text: 'Your notebook keeps actual browser-local practice statistics, optional profile artwork and private stories. Stories are never graded. Connecting a wallet triggers read-only ENS artwork lookup; public IPFS publishing is always a separate explicit action. Return through any white rabbit whenever you want another tour. You are a steward, not a score: the point is to find words you can take into the world.', area: 'personal' }
   ];
   let step = 0;
   const render = () => {
@@ -14,7 +18,12 @@ export function mountTutorial({ openDialog, languages }) {
     $('rabbit-body').textContent = steps[step].text;
     $('rabbit-back').disabled = step === 0;
     $('rabbit-next').textContent = step === steps.length - 1 ? 'Finish orientation' : 'Next hop';
-    $('rabbit-try').textContent = steps[step].area === 'personal' ? 'Open my personal notebook' : steps[step].area === 'week' ? 'Show the observation week' : 'Try this in the study scene';
+    const labels = {
+      personal: 'Open my personal notebook', week: 'Show the observation week',
+      study: 'Try this in the study scene', practice: 'Show free Discover practice',
+      library: 'Explore Words and levels', voices: 'Explore Voices and conversations'
+    };
+    $('rabbit-try').textContent = labels[steps[step].area];
   };
   const launch = () => {
     for (const id of ['about-dialog', 'history-dialog']) if ($(id).open) $(id).close();
@@ -27,14 +36,21 @@ export function mountTutorial({ openDialog, languages }) {
     else { step++; render(); }
   };
   $('rabbit-try').onclick = () => {
-    $('rabbit-dialog').close();
     const area = steps[step].area;
-    if (area === 'personal') $('history-open').click();
-    else {
-      $(`${area}-tab`).click();
-      const target = area === 'study' ? $('study-scene') : $('week');
-      target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' });
-      target.focus({ preventScroll: true });
-    }
+    // Let the dialog's normal focus restoration finish before moving to the selected tool.
+    $('rabbit-dialog').addEventListener('close', () => {
+      if (area === 'personal') $('history-open').click();
+      else {
+        showPanel(area === 'study' ? 'week' : area);
+        if (area === 'study' || area === 'week') $(`${area}-tab`).click();
+        const target = area === 'study' ? $('study-scene')
+          : area === 'library' ? $('scene-library')
+          : area === 'voices' ? $('panel-voices') : $(area);
+        target.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' });
+        if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
+        target.focus({ preventScroll: true });
+      }
+    }, { once: true });
+    $('rabbit-dialog').close();
   };
 }
