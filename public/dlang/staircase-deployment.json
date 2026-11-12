@@ -1,0 +1,91 @@
+{
+  "format": "dlang-staircase-deployment",
+  "version": 1,
+  "chainId": 8453,
+  "contract": "0xFEEe3bEBa3e897f3db00D45CCF4Ed6927e0e301f",
+  "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "steward": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "funded": true,
+  "prototypeRecovery": true,
+  "recoveryDisabled": false,
+  "runtimeCodeHash": "0x6731e02841bc9a13049bfd5034e8b6236a65b8e45115d9cc9e3283f7693ec70e",
+  "sourceHash": "0x7f25771003d955a66c4260a643701812695715fdcf31ac9180ac88c839317e7e",
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "sourceRevision": "e02d0e9",
+  "sourceVerification": {
+    "service": "Sourcify",
+    "creationMatch": "exact_match",
+    "runtimeMatch": "exact_match",
+    "result": "https://sourcify.dev/server/v2/verify/7ffeda2b-1168-48e8-ae8a-a6db57a72779",
+    "verifiedAt": "2026-11-12T19:20:02Z"
+  },
+  "initialSupply": "4400000000000000000000",
+  "initialAssets": "440000",
+  "originalReserve": "0xD5062a20A9eC942322fb63407DC5B327cF9AA8b6",
+  "migration": false,
+  "fundingSwap": {
+    "router": "0x2626664c2603336E57B271c5C0b26F421741e481",
+    "receivedMicroUSDC": "440000",
+    "spentETHWei": "218554536249092",
+    "approvedInputCapWei": "250000000000000",
+    "maximumInputSlippageBps": 100
+  },
+  "transactions": {
+    "swap": {
+      "hash": "0x5df38e07d60100942cccb8feddc1f38ceb6d456a23c2b7a6d8f0d7f77aa192f7",
+      "blockNumber": 56598376,
+      "receiptStatus": 1,
+      "actualTotalWei": "794841861280"
+    },
+    "reserve": {
+      "hash": "0x4322f8e34fce4417979eccb0c27bb89a50cc839999a0900e63b2be61c0786f03",
+      "blockNumber": 56598663,
+      "receiptStatus": 1,
+      "actualTotalWei": "17275491955757"
+    },
+    "trial": {
+      "hash": "0x1c367e6237cc5885f50127c67a97f6b8ffa29210a3a145587e0249d01c8cf122",
+      "blockNumber": 56599308,
+      "receiptStatus": 1,
+      "actualTotalWei": "18340502072879"
+    },
+    "approve": {
+      "hash": "0x3d5dad00ca3f2d1cfe9f9cd685ad58cbd263fd45d77a17a3a3fe19982418407d",
+      "blockNumber": 56600254,
+      "receiptStatus": 1,
+      "actualTotalWei": "333556316878"
+    },
+    "bootstrap": {
+      "hash": "0xd63ff15005a25bdb1ddec7c89e311a7d563658004263d776283303c4a1c18f83",
+      "blockNumber": 56601178,
+      "receiptStatus": 1,
+      "actualTotalWei": "816140566720"
+    }
+  },
+  "cumulativeGasWei": "63122734981639",
+  "weekly": {
+    "contract": "0xf2a5f78c603026134D4455283E41A7ddd95FBefC",
+    "runtimeCodeHash": "0x587ffb34ccc9afab3b4164bca97d1d535c45b8ad0cb12a459d102a68562973e0",
+    "sourceHash": "0x13e2e35d9902ca0df3010bac0712131bae89d0d1b02399715f7a7974c0c1a526",
+    "sourceVerification": {
+      "service": "Sourcify",
+      "creationMatch": "exact_match",
+      "runtimeMatch": "exact_match",
+      "result": "https://sourcify.dev/server/v2/verify/d55652a8-abd8-4c7d-b159-753dd934ff1c",
+      "verifiedAt": "2026-11-12T19:20:06Z"
+    },
+    "steward": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+    "members": [
+      "0x807061DF657A7697c04045dA7d16D941861cAABc",
+      "0x405Bb3Cdf23833bb27BAD6629b7cd4f01688235f",
+      "0x29185eB8cfD22Aa719529217bFbadE61677e0Ad2",
+      "0xF18E19c537a7A99571Bc3F8cef81DCBCaea7c3AE",
+      "0xde21D925ee48fFAeD8939AE8B75dD6E82310f8Ea"
+    ],
+    "staircase": "0xFEEe3bEBa3e897f3db00D45CCF4Ed6927e0e301f",
+    "roundCount": 0,
+    "paymentsEnabled": false,
+    "prototypeRecovery": true
+  },
+  "verifiedAt": "2026-11-12T19:10:48.708Z"
+}

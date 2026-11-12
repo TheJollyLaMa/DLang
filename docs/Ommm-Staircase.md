@@ -1,6 +1,6 @@
-# Staircase successors: built, not deployed
+# Staircase successors: deployed prototype
 
-These are **new, locally tested contracts**, not changes to the live reserve:
+These are **new, deployed prototype contracts**, not changes to the original reserve:
 
 - [OmmmStaircase](../contracts/dlang/OmmmStaircase.sol): reserve-backed Ommm,
   milestones, dividend resets and separately accounted claims.
@@ -10,6 +10,19 @@ These are **new, locally tested contracts**, not changes to the live reserve:
 The operator has authorized a fresh 0.44 USDC genesis and both successor
 deployments, not a paid round. The original deployed contracts, their source,
 balances, claims and public deployment manifests remain unchanged.
+
+## Confirmed Base deployments
+
+- Reserve: `0xFEEe3bEBa3e897f3db00D45CCF4Ed6927e0e301f`.
+- Weekly successor: `0xf2a5f78c603026134D4455283E41A7ddd95FBefC`.
+- Fresh genesis: 4,400 unawarded Ommm with 0.44 native Base USDC backing.
+- No paid round opened; no old tokens, backing or claims migrated.
+- Full prototype recovery remains enabled on both contracts.
+
+[Versioned deployment evidence](../public/dlang/staircase-deployment.json)
+records transaction receipts, source/runtime hashes and dated observations.
+It is not a live synchronization feed. The original pool remains available
+separately; the identical symbol does not make the two token addresses fungible.
 
 ## Prototype custody and full recovery
 
@@ -161,9 +174,9 @@ Before any chain writes:
 3. Review the administrator inventory-dividend authority and owner destination.
 4. Pin reviewed code/constructor/runtime hashes, fund and verify the new pool,
    then configure the new trial's immutable same-asset destination.
-5. Add versioned successor deployment evidence, dividend/checkpoint transaction
-   UI and verified automation. Do not silently point the existing notebook at
-   a new contract: its current quote display has no dividend-claim controls.
+5. Add versioned successor deployment evidence and dividend/checkpoint controls.
+   The notebook now requires explicit pool selection and retains the original
+   deployment. No external automation service is installed.
 6. Publish new weekly terms and obtain opt-in before opening successor rounds;
    never retroactively skim old escrow forfeitures or unresolved deposits.
 

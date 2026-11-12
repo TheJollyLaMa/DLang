@@ -88,18 +88,26 @@ are in the [public manifest](public/dlang/ommm-deployment.json).
 Neither local practice nor narrator accruals can
 issue or spend these gems.
 
-The [staircase successor contracts](docs/Ommm-Staircase.md) are built/tested,
-**not deployed**: milestone climbs, $2-to-$1 dividend resets, separately claimable
+The [staircase successor contracts](docs/Ommm-Staircase.md) are deployed on Base
+with a fresh 0.44 USDC reserve and 4,400 unawarded Ommm: milestone climbs,
+$2-to-$1 dividend resets, separately claimable
 holder dividends and administrator-withdrawable inventory dividends for testing.
 A new weekly successor allocates half of finalized forfeitures to this reserve
-and half to survivors (carry when none qualify). Existing pool/weekly contracts,
-balances and frontend configuration remain unchanged pending migration approval.
+and half to survivors (carry when none qualify); **no paid round is open**.
+Both prototypes have explicit full administrator recovery, including participant
+funds; recovery permanently retires the affected contract. Two-step group custody
+handoff and a separate irreversible recovery-disable switch are provided.
+The notebook requires explicit pool selection and retains the original pool.
+Original contracts, backing, claims and manifests are unchanged; this is not a
+migration. [Successor receipts](public/dlang/staircase-deployment.json).
+Future DVERT/subscription adapters can fund net settled USDC revenue through
+`fund`; issues #4/#5 remain deferred and refundable liabilities stay separate.
 
 The nine-hop white rabbit tour walks through free Discover practice, languages,
 growing levels, Voices, a no-payment first-week rehearsal, the tested 50/50 split,
 dividend resets and the notebook. Its actions open the actual icon panels without
 starting timers, connecting a wallet, recording or submitting transactions. The
-tour distinguishes the live original pool from the still-unfunded successor.
+tour distinguishes the separate pool versions and their prototype custody risks.
 
 Scene-grounded typed conversation works without an account or a transcript store.
 Private audio is opt-in, starts listen-only and stops during scored attempts.

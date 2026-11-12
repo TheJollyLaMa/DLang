@@ -8,8 +8,9 @@ The 4,400-token supply and 0.44 USDC reserve were confirmed November 12, 2026.
 Deployment, exact approval and bootstrap cost 0.000011887132091035 ETH in total.
 
 The [staircase successors](Ommm-Staircase.md) add dividend resets and a new weekly
-50/50 forfeiture split. They are built/tested only: not deployed or funded, and
-do not change any rules or balances described below for the live original pool.
+50/50 forfeiture split. They are deployed as separate prototypes with fresh
+funding and full administrator recovery; no paid round is open. They do not
+change any rules or balances described below for the live original pool.
 
 ## Rules
 
