@@ -2,7 +2,7 @@
   "name": "dlang-trial-contract-tests",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test trial.test.mjs narration-rewards.test.mjs ommm-reserve.test.mjs", "prepare": "node prepare.mjs", "test:base-fork": "node --test --test-timeout=90000 base-fork.test.mjs", "deploy": "node deploy.mjs" },
+  "scripts": { "test": "node --test trial.test.mjs narration-rewards.test.mjs ommm-reserve.test.mjs staircase.test.mjs", "prepare": "node prepare.mjs", "test:base-fork": "node --test --test-timeout=90000 base-fork.test.mjs", "test:staircase-fork": "node --test --test-timeout=180000 staircase-base-fork.test.mjs", "deploy": "node deploy.mjs" },
   "devDependencies": {
     "@openzeppelin/contracts": "5.6.1",
     "ethers": "6.17.0",

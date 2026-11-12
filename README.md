@@ -88,6 +88,13 @@ are in the [public manifest](public/dlang/ommm-deployment.json).
 Neither local practice nor narrator accruals can
 issue or spend these gems.
 
+The [staircase successor contracts](docs/Ommm-Staircase.md) are built/tested,
+**not deployed**: milestone climbs, $2-to-$1 dividend resets, separately claimable
+holder dividends and administrator-withdrawable inventory dividends for testing.
+A new weekly successor allocates half of finalized forfeitures to this reserve
+and half to survivors (carry when none qualify). Existing pool/weekly contracts,
+balances and frontend configuration remain unchanged pending migration approval.
+
 Scene-grounded typed conversation works without an account or a transcript store.
 Private audio is opt-in, starts listen-only and stops during scored attempts.
 The optional service exports `createConversationTransport`,

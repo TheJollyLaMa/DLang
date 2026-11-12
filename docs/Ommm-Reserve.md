@@ -7,6 +7,10 @@ Base contract: `0xD5062a20A9eC942322fb63407DC5B327cF9AA8b6`.
 The 4,400-token supply and 0.44 USDC reserve were confirmed November 12, 2026.
 Deployment, exact approval and bootstrap cost 0.000011887132091035 ETH in total.
 
+The [staircase successors](Ommm-Staircase.md) add dividend resets and a new weekly
+50/50 forfeiture split. They are built/tested only: not deployed or funded, and
+do not change any rules or balances described below for the live original pool.
+
 ## Rules
 
 - 4,400 Ommm, 18 decimals, initially held as reward inventory by the contract.
