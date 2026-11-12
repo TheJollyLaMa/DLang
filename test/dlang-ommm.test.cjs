@@ -2,6 +2,32 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { createServer } = require('../index');
+const fs = require('node:fs');
+const path = require('node:path');
+const { keccak256 } = require('ethers');
+
+test('public Ommm evidence matches source, exact bootstrap and reconciled successful receipts', () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/dlang/ommm-deployment.json'), 'utf8'));
+  const source = fs.readFileSync(path.join(__dirname, '../contracts/dlang/OmmmReserve.sol'));
+  assert.equal(manifest.chainId, 8453);
+  assert.equal(manifest.funded, true);
+  assert.equal(manifest.bridged, false);
+  assert.equal(manifest.initialSupply, '4400000000000000000000');
+  assert.equal(manifest.initialAssets, '440000');
+  assert.equal(manifest.sourceHash, keccak256(source));
+  assert.match(manifest.runtimeCodeHash, /^0x[0-9a-f]{64}$/);
+  assert.notEqual(manifest.contract.toLowerCase(), '0xd0f666df2dd23437f5e4d7eb975295b5885ee15e');
+  assert.deepEqual(Object.keys(manifest.transactions), ['deploy', 'approve', 'bootstrap']);
+  let total = 0n, block = 0;
+  for (const receipt of Object.values(manifest.transactions)) {
+    assert.equal(receipt.receiptStatus, 1);
+    assert.match(receipt.hash, /^0x[0-9a-f]{64}$/);
+    assert.ok(receipt.blockNumber > block); block = receipt.blockNumber;
+    assert.ok(BigInt(receipt.actualTotalWei) > 0n); total += BigInt(receipt.actualTotalWei);
+    assert.equal(receipt.capWei, undefined, 'local signing journal is not a public receipt');
+  }
+  assert.equal(String(total), manifest.actualGasTotalWei);
+});
 
 async function setup(t) {
   const server = createServer();

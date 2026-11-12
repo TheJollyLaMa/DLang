@@ -83,8 +83,9 @@ Learning gems have a separate [Base Ommm reserve](docs/Ommm-Reserve.md):
 4,400 initial inventory tokens, 0.44 USDC bootstrap, proportional burn/redemption,
 steward-reviewed awards and non-diluting future mints after reaching 1 USDC
 backing. The notebook reads confirmed balances/backing on explicit refresh and
-offers wallet-confirmed redemption. Actual activation requires the confirmed
-public deployment manifest; neither local practice nor narrator accruals can
+offers wallet-confirmed redemption. The reserve is deployed and funded; receipts
+are in the [public manifest](public/dlang/ommm-deployment.json).
+Neither local practice nor narrator accruals can
 issue or spend these gems.
 
 Scene-grounded typed conversation works without an account or a transcript store.

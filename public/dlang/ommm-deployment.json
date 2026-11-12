@@ -1,0 +1,41 @@
+{
+  "format": "dlang-ommm-reserve",
+  "version": 1,
+  "chainId": 8453,
+  "contract": "0xD5062a20A9eC942322fb63407DC5B327cF9AA8b6",
+  "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "steward": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "name": "Ommm",
+  "symbol": "Ommm",
+  "decimals": 18,
+  "funded": true,
+  "initialSupply": "4400000000000000000000",
+  "initialAssets": "440000",
+  "runtimeCodeHash": "0x4fc3361be8f02f31ea8a3f5177f8cc35fe918049331313e29dddb45436257309",
+  "sourceHash": "0xf5d7b3ac7d6e95aa8a343d69fac2cac4c3fee47a810277aea2411fde666839b6",
+  "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
+  "polygonReference": "0x1a74f818F1b42dBFcE449c7Fa93B107C6e4A2433",
+  "bridged": false,
+  "transactions": {
+    "deploy": {
+      "hash": "0x7353ccaf155e3c5e248dc083e634e4a567ec4bfbb4fc61bb2d5aac0a5c02f512",
+      "actualTotalWei": "10952987849597",
+      "blockNumber": 56550372,
+      "receiptStatus": 1
+    },
+    "approve": {
+      "hash": "0xa9461837282d3404d90d8fdc6338f7ca962e31e8f29092199210690818e450d2",
+      "actualTotalWei": "340031423607",
+      "blockNumber": 56552044,
+      "receiptStatus": 1
+    },
+    "bootstrap": {
+      "hash": "0xb9c5d1648265848b20cb094ef2836a4d314e17d33e7846657fe6d4873b21c1d9",
+      "actualTotalWei": "594112817831",
+      "blockNumber": 56552394,
+      "receiptStatus": 1
+    }
+  },
+  "actualGasTotalWei": "11887132091035",
+  "verifiedAt": "2026-11-12T16:27:43.152Z"
+}

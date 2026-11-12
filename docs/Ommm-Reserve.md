@@ -3,6 +3,9 @@
 The Base ERC-20 is also the reserve-pool token. It is not an AMM/LP token or a
 bridge to Polygon Ommm. Deployment receipts, runtime hash and initial funding
 are recorded in [the public manifest](../public/dlang/ommm-deployment.json).
+Base contract: `0xD5062a20A9eC942322fb63407DC5B327cF9AA8b6`.
+The 4,400-token supply and 0.44 USDC reserve were confirmed November 12, 2026.
+Deployment, exact approval and bootstrap cost 0.000011887132091035 ETH in total.
 
 ## Rules
 

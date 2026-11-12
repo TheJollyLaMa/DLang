@@ -43,7 +43,7 @@ fs.mkdirSync(build, { recursive: true });
 const file = name => new URL(`${name}.json`, build);
 const read = name => JSON.parse(fs.readFileSync(file(name), 'utf8'));
 const write = (name, value, options) => fs.writeFileSync(file(name), JSON.stringify(value, null, 2), options);
-const provider = new JsonRpcProvider('https://base-rpc.publicnode.com', 8453, { staticNetwork: true, cacheTimeout: -1 });
+const provider = new JsonRpcProvider('https://mainnet.base.org', 8453, { staticNetwork: true, cacheTimeout: -1 });
 const ens = new JsonRpcProvider('https://ethereum-rpc.publicnode.com', 1, { staticNetwork: true });
 const usdc = new Contract(asset, [
   'function decimals() view returns(uint8)', 'function symbol() view returns(string)',
@@ -187,7 +187,10 @@ try {
         || !await pool.funded() || await pool.reserveAssets() !== initialAssets
         || await pool.totalSupply() !== parseEther('4400') || await pool.balanceOf(poolAddress) !== parseEther('4400')
         || await usdc.allowance(steward, poolAddress) !== 0n) throw Error('Funded pool verification failed.');
-      const transactions = Object.fromEntries(['deploy', 'approve', 'bootstrap'].map(action => [action, read(`${action}-confirmed`)]));
+      const transactions = Object.fromEntries(['deploy', 'approve', 'bootstrap'].map(action => {
+        const { hash, blockNumber, receiptStatus, actualTotalWei } = read(`${action}-confirmed`);
+        return [action, { hash, blockNumber, receiptStatus, actualTotalWei }];
+      }));
       const manifest = { format: 'dlang-ommm-reserve', version: 1, chainId: 8453, contract: poolAddress,
         asset, steward, name: 'Ommm', symbol: 'Ommm', decimals: 18, funded: true,
         initialSupply: String(parseEther('4400')), initialAssets: String(initialAssets),
