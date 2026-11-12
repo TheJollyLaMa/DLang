@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
-/// @notice Undeployed successor; existing Ommm backing and balances do not migrate automatically.
+/// @notice Prototype successor; existing Ommm backing and balances do not migrate automatically.
 contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     using SafeERC20 for IERC20;
     using SafeCast for uint256;
@@ -24,6 +24,8 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     IERC20 public immutable asset;
     uint256 public immutable firstDay;
     bool public funded;
+    bool public prototypeRetired;
+    bool public recoveryDisabled;
     uint256 public dividendLiabilities;
     uint256 public dividendPerUnit;
     uint256 public resetCount;
@@ -42,6 +44,8 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     event DividendReset(uint256 indexed cycle, uint256 supply, uint256 allocated, uint256 retained);
     event DividendClaimed(address indexed holder, uint256 assets);
     event InventoryDividendWithdrawn(address indexed administrator, address indexed recipient, uint256 assets);
+    event PrototypeRecovery(address indexed administrator, address indexed asset, address indexed recipient, uint256 assets);
+    event RecoveryDisabled();
 
     error InvalidConfiguration();
     error Unavailable();
@@ -52,6 +56,11 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     error TargetNotReached();
     error ResetRequired();
 
+    modifier active() {
+        if (prototypeRetired) revert Unavailable();
+        _;
+    }
+
     constructor(address usdc, address steward) ERC20("Ommm", "Ommm") Ownable(steward) {
         if (usdc.code.length == 0 || IERC20Metadata(usdc).decimals() != 6) revert InvalidConfiguration();
         asset = IERC20(usdc);
@@ -60,6 +69,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     }
 
     function reserveAssets() public view returns (uint256) {
+        if (prototypeRetired) return 0;
         return asset.balanceOf(address(this)) - dividendLiabilities;
     }
 
@@ -82,7 +92,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         return step;
     }
 
-    function bootstrap() external onlyOwner nonReentrant {
+    function bootstrap() external onlyOwner active nonReentrant {
         if (funded) revert Unavailable();
         _collect(INITIAL_ASSETS);
         funded = true;
@@ -90,7 +100,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         emit Funded(msg.sender, INITIAL_ASSETS);
     }
 
-    function fund(uint256 assets) external nonReentrant {
+    function fund(uint256 assets) external active nonReentrant {
         if (!funded) revert Unavailable();
         if (assets == 0) revert InvalidAmount();
         _collect(assets);
@@ -98,7 +108,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         emit Funded(msg.sender, assets);
     }
 
-    function checkpoint() external nonReentrant {
+    function checkpoint() external active nonReentrant {
         if (!funded) revert Unavailable();
         _checkpoint();
     }
@@ -127,10 +137,11 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     }
 
     function claimableDividend(address holder) public view returns (uint256) {
+        if (prototypeRetired) return 0;
         return accumulatedDividend(holder) - dividendsPaid[holder];
     }
 
-    function claimDividendFor(address holder) external nonReentrant {
+    function claimDividendFor(address holder) external active nonReentrant {
         if (holder == address(0) || holder == address(this)) revert InvalidAmount();
         _checkpoint();
         uint256 amount = _takeDividend(holder);
@@ -138,7 +149,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         emit DividendClaimed(holder, amount);
     }
 
-    function withdrawInventoryDividend(address recipient, uint256 assets) external onlyOwner nonReentrant {
+    function withdrawInventoryDividend(address recipient, uint256 assets) external onlyOwner active nonReentrant {
         if (recipient == address(0) || recipient == address(this) || assets == 0) revert InvalidAmount();
         _checkpoint();
         if (assets > claimableDividend(address(this))) revert InvalidAmount();
@@ -163,7 +174,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         return Math.mulDiv(units, reserve, supply);
     }
 
-    function redeem(uint256 units, uint256 minimumAssets) external nonReentrant {
+    function redeem(uint256 units, uint256 minimumAssets) external active nonReentrant {
         if (!funded) revert Unavailable();
         if (units == 0 || minimumAssets == 0) revert InvalidAmount();
         _checkpoint();
@@ -175,6 +186,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     }
 
     function previewMint(uint256 units) public view returns (uint256) {
+        if (prototypeRetired) revert Unavailable();
         if (!funded || units == 0) revert InvalidAmount();
         if (resetDue()) revert ResetRequired();
         uint256 supply = totalSupply();
@@ -211,6 +223,36 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     function pauseAwards() external onlyOwner { _pause(); }
     function resumeAwards() external onlyOwner { _unpause(); }
 
+    // PROTOTYPING ONLY: the owner can recover even holder backing and dividend funds.
+    // When ready for group custody, ask for a proper two-step ownership handoff if not
+    // already completed, and explicitly decide whether to permanently disable recovery.
+    // Retirement voids payouts; historical balances and dividend records are not erased.
+    function recoverPrototype(address recoveryAsset, address recipient) external onlyOwner nonReentrant {
+        if (recoveryDisabled || recipient == address(0) || recipient == address(this)) revert InvalidAmount();
+        prototypeRetired = true;
+        funded = false;
+        uint256 amount = recoveryAsset == address(0)
+            ? address(this).balance : IERC20(recoveryAsset).balanceOf(address(this));
+        if (amount == 0) revert InvalidAmount();
+        if (recoveryAsset == address(0)) {
+            (bool ok,) = payable(recipient).call{value: amount}("");
+            if (!ok) revert InexactTransfer();
+        } else if (recoveryAsset == address(asset)) {
+            _send(recipient, amount);
+        } else {
+            IERC20(recoveryAsset).safeTransfer(recipient, amount);
+        }
+        emit PrototypeRecovery(msg.sender, recoveryAsset, recipient, amount);
+    }
+
+    function disablePrototypeRecovery() external onlyOwner active {
+        if (recoveryDisabled) revert Unavailable();
+        recoveryDisabled = true;
+        emit RecoveryDisabled();
+    }
+
+    receive() external payable {}
+
     function _award(address steward, uint256 units, bytes32 evidence) private {
         if (!funded || steward == address(0) || steward == address(this) || evidence == bytes32(0) || usedEvidence[evidence])
             revert InvalidAward();
@@ -235,6 +277,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     }
 
     function _update(address from, address to, uint256 value) internal override {
+        if (prototypeRetired) revert Unavailable();
         if (from != address(0) && to == address(this)) revert InvalidAmount();
         if (from != address(0)) _checkpoint();
         int256 correction = (dividendPerUnit * value).toInt256();

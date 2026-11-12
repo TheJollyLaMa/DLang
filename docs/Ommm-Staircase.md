@@ -7,9 +7,33 @@ These are **new, locally tested contracts**, not changes to the live reserve:
 - [DLangStaircaseTrial](../contracts/dlang/DLangStaircaseTrial.sol): the weekly
   pilot with a 50/50 split of finalized forfeitures.
 
-No signing, deployment, additional funding, live configuration change or keeper
-subscription is authorized for this version. The original deployed contracts,
-their source, balances, claims and public deployment manifests remain unchanged.
+The operator has authorized a fresh 0.44 USDC genesis and both successor
+deployments, not a paid round. The original deployed contracts, their source,
+balances, claims and public deployment manifests remain unchanged.
+
+## Prototype custody and full recovery
+
+**These prototypes are administrator-custodied, not trustless savings accounts.**
+The reserve owner and weekly steward can call `recoverPrototype(asset, recipient)`
+to withdraw the entire balance of an ERC-20 or native ETH (`asset = address(0)`),
+including token backing, earned dividends, entry principal and unpaid refunds.
+This deliberately overrides the payout protections described below.
+
+The first successful recovery permanently retires that contract. A retired
+reserve reports `funded = false`, zero usable reserve and zero claimable
+dividends; transfers, awards, funding, redemption and claims stop. A retired
+weekly trial stops enrollment, settlement, delivery and refunds. Historical token
+balances, rounds, credits and liabilities remain visible **as history, not payable
+claims**. Recovery can subsequently retrieve mistaken deposits, but cannot
+reactivate the prototype. Failed transfers roll back retirement atomically.
+
+This authority is for prototyping only. When the stewards are ready to take
+custody together, ask for a proper handoff if not already completed. Reserve
+ownership uses OpenZeppelin's two-step nomination/acceptance; the weekly trial
+uses `transferSteward`/`acceptSteward`. Neither silently removes recovery.
+`disablePrototypeRecovery()` is a separate, irreversible administrator decision
+available before retirement. Group custody does not automatically mean recovery
+has been disabled; verify both contracts on-chain.
 
 ## Staircase and reset
 
@@ -55,7 +79,8 @@ This is a checkpoint distribution, not a time-weighted holding reward.
   For this test version, the owner may call
   `withdrawInventoryDividend(recipient, assets)` against **only that allocation**.
   The withdrawal records administrator, recipient and amount in an event.
-  It cannot withdraw holder dividends or token backing.
+  This particular function cannot withdraw holder dividends or token backing;
+  the separate full prototype recovery authority above can.
 - **This is an administrator trust surface**, explicitly requested for testing.
   Inventory dividends are not irrevocably locked for learning. Owner-controlled
   award approval/identities also remain trusted; editable practice data is not
@@ -72,7 +97,7 @@ Matching funds and new inventory are accounted together, so the mint deposit
 cannot falsely trigger a dividend against the old supply. New units require
 rounded-up current backing and do not dilute holders.
 
-Pause applies only to awards and issuance. Checkpoints, funding, holder transfers,
+While active, pause applies only to awards and issuance. Checkpoints, funding, holder transfers,
 claims, inventory-dividend withdrawals and redemption remain available. Native
 USDC issuer controls (including blacklist/pause) and depeg risks still apply.
 
@@ -130,8 +155,9 @@ Before any chain writes:
 
 1. Approve an explicit fresh-genesis or holder-led migration policy, including
    coexistence and treatment of old inventory. Preserve old balances and claims.
-2. Approve any additional USDC funding and quote cumulative gas against the
-   remaining original gas budget. This task approved **neither**.
+2. Verify the approved additional 0.44 USDC funding and cumulative gas against the
+   original 0.001 ETH ceiling. The ETH swap input cap is 0.00025 ETH, excluding
+   gas, with 1% maximum input slippage for exactly 0.44 native Base USDC.
 3. Review the administrator inventory-dividend authority and owner destination.
 4. Pin reviewed code/constructor/runtime hashes, fund and verify the new pool,
    then configure the new trial's immutable same-asset destination.
@@ -141,8 +167,29 @@ Before any chain writes:
 6. Publish new weekly terms and obtain opt-in before opening successor rounds;
    never retroactively skim old escrow forfeitures or unresolved deposits.
 
-No migration or successor deployment script is enabled by this change. The
-existing deployment commands continue targeting their original contracts.
+`contract-tools/staircase-launch.mjs` supports unsigned per-step preflights and
+explicit broadcasts with durable transaction-hash journals. Never repeat a
+submitted operation after an ambiguous response: reconcile its recorded hash.
+The original deployment commands continue targeting their original contracts.
+
+Run `node --test contract-tools/staircase-launch-fork.test.mjs` for a local-only
+real Base USDC/Uniswap exact-output swap, fresh deployment, bootstrap and full
+recovery test. No key is required and no remote transactions are sent.
+
+## Future sponsor and subscription funding
+
+Issues #4 and #5 remain deferred. Both can contribute **net, settled revenue**
+through the existing permissionless `fund(assets)` path using native Base USDC;
+this checkpoints milestones and dividend resets. Approve only the exact funding
+amount, keep revenue provenance in their own ledgers and record the reserve's
+`Funded` event. Neither adapter needs mint authority, recovery authority or a new
+reserve implementation.
+
+Do not treat refundable purchases, subscriptions, weekly principal or narrator
+payment liabilities as surplus reserve funding. Conversion from other chains or
+assets requires its own approved swap/bridge policy. No DVERT or subscription
+adapter, standing allowance, budget, keeper or automatic revenue collection is
+enabled by these contracts.
 
 ## Reuse and receiving tests
 

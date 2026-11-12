@@ -1,20 +1,24 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.24;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 interface IDLangStaircase {
     function asset() external view returns (address);
     function funded() external view returns (bool);
     function checkpoint() external;
 }
 
-/// @notice Undeployed successor with a 50/50 split of finalized forfeitures.
+/// @notice Prototype successor with a 50/50 split of finalized forfeitures.
 contract DLangStaircaseTrial {
+    using SafeERC20 for IERC20;
     uint256 public constant ENTRY = 1_000_000;
     uint256 public constant REVIEW = 48 hours;
     uint256 public constant REFUND_DELAY = 14 days;
     uint256 public constant MAX_MEMBERS = 8;
     address public immutable token;
-    address public immutable steward;
+    address public steward;
+    address public pendingSteward;
     IDLangStaircase public immutable staircase;
     address[] public members;
     mapping(address => bool) public member;
@@ -24,6 +28,8 @@ contract DLangStaircaseTrial {
     uint256 public carryTotal;
     uint256 public staircaseCredit;
     bool public stopped;
+    bool public prototypeRetired;
+    bool public recoveryDisabled;
     bool private entered;
 
     enum Phase { None, Open, Proposed, Settled, Cancelled }
@@ -52,13 +58,17 @@ contract DLangStaircaseTrial {
     event Cancelled(uint256 indexed id);
     event Stopped();
     event Claimed(address indexed account, uint256 amount);
+    event StewardNominated(address indexed currentSteward, address indexed nominee);
+    event StewardAccepted(address indexed previousSteward, address indexed newSteward);
+    event PrototypeRecovery(address indexed administrator, address indexed asset, address indexed recipient, uint256 assets);
+    event RecoveryDisabled();
 
     modifier onlySteward() {
         require(msg.sender == steward, "Steward only");
         _;
     }
     modifier lock() {
-        require(!entered, "Reentrant");
+        require(!entered && !prototypeRetired, "Reentrant or retired");
         entered = true;
         _;
         entered = false;
@@ -82,6 +92,53 @@ contract DLangStaircaseTrial {
     }
 
     function memberCount() external view returns (uint256) { return members.length; }
+
+    function transferSteward(address nominee) external onlySteward {
+        require(!entered && !prototypeRetired && nominee != address(0) && nominee != address(this), "Invalid handoff");
+        pendingSteward = nominee;
+        emit StewardNominated(steward, nominee);
+    }
+
+    function acceptSteward() external {
+        require(!entered && !prototypeRetired && msg.sender == pendingSteward, "Invalid handoff");
+        address previous = steward;
+        steward = msg.sender;
+        pendingSteward = address(0);
+        emit StewardAccepted(previous, msg.sender);
+    }
+
+    // PROTOTYPING ONLY: the steward can recover even entry principal, refunds and
+    // staircase liabilities. When ready for group custody, ask for a proper
+    // two-step handoff if not already completed, and decide whether to disable recovery.
+    // Retirement voids payouts; historical round and liability records remain visible.
+    function recoverPrototype(address recoveryAsset, address recipient) external onlySteward {
+        require(!entered && !recoveryDisabled, "Recovery unavailable");
+        require(recipient != address(0) && recipient != address(this), "Invalid recipient");
+        entered = true;
+        prototypeRetired = true;
+        stopped = true;
+        uint256 amount = recoveryAsset == address(0)
+            ? address(this).balance : IERC20(recoveryAsset).balanceOf(address(this));
+        require(amount != 0, "No recovery balance");
+        if (recoveryAsset == address(0)) {
+            (bool ok,) = payable(recipient).call{value: amount}("");
+            require(ok, "Native recovery failed");
+        } else if (recoveryAsset == token) {
+            _send(recipient, amount);
+        } else {
+            IERC20(recoveryAsset).safeTransfer(recipient, amount);
+        }
+        emit PrototypeRecovery(msg.sender, recoveryAsset, recipient, amount);
+        entered = false;
+    }
+
+    function disablePrototypeRecovery() external onlySteward {
+        require(!entered && !prototypeRetired && !recoveryDisabled, "Recovery unavailable");
+        recoveryDisabled = true;
+        emit RecoveryDisabled();
+    }
+
+    receive() external payable {}
 
     function openRound(uint64 start, uint64 end, bytes32 terms) external onlySteward {
         require(!stopped && block.timestamp < start && start <= block.timestamp + 7 days && terms != bytes32(0), "Round unavailable");
