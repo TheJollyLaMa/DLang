@@ -25,6 +25,7 @@ const addressPattern = /^0x[0-9a-fA-F]{40}$/;
 const hashPattern = /^0x[0-9a-fA-F]{64}$/;
 const sameAddress = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toLowerCase() === b.toLowerCase();
 const isSuccessor = config => config?.format === 'dlang-staircase-deployment';
+const PROTOTYPE_RISK = 'Prototype risk: administrator can recover all staircase USDC, including holder backing and dividends, permanently retiring payouts. Weekly administrator can also recover all stakes, refunds and credits, permanently retiring weekly payouts. Historical ledgers remain but do not authorize payouts after retirement. Group-custody handoff requested: it requires explicit on-chain authority transfers, not merely a member roster. Connect and refresh to verify current recovery and retirement state.';
 
 export function validateOmmmDeployment(config) {
   if (config?.chainId !== 8453 || config.funded !== true
@@ -134,7 +135,7 @@ export function mountOmmm({ root, getWallet, storage, connect = connectOmmm,
     $('reserve').textContent = ''; $('pool').hidden = true;
     $('transaction').hidden = true;
     $('successor').hidden = selected() !== 'staircase'; $('claimable').textContent = '—';
-    $('staircase').textContent = ''; $('risk').textContent = '';
+    $('staircase').textContent = ''; $('risk').textContent = selected() === 'staircase' ? PROTOTYPE_RISK : '';
     $('redeem').disabled = true; $('claim').disabled = true; $('checkpoint').disabled = true;
     status(`${label()} · Connect on Base, then refresh your confirmed Ommm balance.`);
   }

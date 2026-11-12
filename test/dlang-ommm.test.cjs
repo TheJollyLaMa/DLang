@@ -232,6 +232,23 @@ async function successor(page) {
   await page.locator(selector('balance')).filter({ hasText: 'Staircase successor' }).waitFor();
 }
 
+test('disconnected successor selection immediately discloses full terminal recovery risk without reads or signing', async t => {
+  const { page, errors, external } = await setup(t);
+  assert.equal(await page.evaluate(() => window.__wallet.connected), false);
+  await page.selectOption(selector('version'), 'staircase');
+  assert.equal(await page.locator(selector('successor')).isVisible(), true);
+  assert.match(await page.locator(selector('risk')).textContent(), /recover all staircase USDC.*holder backing and dividends.*permanently retiring payouts/);
+  assert.match(await page.locator(selector('risk')).textContent(), /stakes, refunds and credits.*Historical ledgers remain.*do not authorize payouts after retirement/);
+  assert.match(await page.locator(selector('risk')).textContent(), /Group-custody handoff requested.*explicit on-chain authority transfers/);
+  for (const action of ['redeem', 'claim', 'checkpoint']) assert.equal(await page.locator(selector(action)).isDisabled(), true);
+  assert.equal(await page.evaluate(() => window.__reads), 0);
+  assert.equal(await page.evaluate(() => window.__writes), 0);
+  await page.selectOption(selector('version'), 'original');
+  assert.equal(await page.locator(selector('successor')).isVisible(), false);
+  assert.equal(await page.locator(selector('risk')).textContent(), '');
+  assert.deepEqual(errors, []); assert.deepEqual(external, []);
+});
+
 test('successor is explicitly selected, separately labeled, and warns about full terminal recovery and custody', async t => {
   const { page, errors } = await setup(t);
   assert.equal(await page.inputValue(selector('version')), 'original');
