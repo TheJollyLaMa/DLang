@@ -47,6 +47,7 @@ for (const width of [1280, 375]) test(`${width}px white rabbit walks through rea
     assert.equal(await page.locator('#rabbit-progress').textContent(), `Hop ${index + 1} of 9`);
     assert.match(await page.locator('#rabbit-title').textContent(), item.title);
     if (index === 0) assert.match(await page.locator('#rabbit-body').textContent(), /Nothing.*starts your timer/);
+    if (index === 3) assert.match(await page.locator('#rabbit-body').textContent(), /two-device audio.*different operator-approved wallets.*GitHub Pages is typed-only.*signs a message, not a payment/);
     if (index === 4) assert.match(await page.locator('#rabbit-body').textContent(), /No paid round is open/);
     if (index === 5) assert.match(await page.locator('#rabbit-body').textContent(), /0.50.*0.50.*not active/);
     if (index === 6) assert.match(await page.locator('#rabbit-body').textContent(), /recover all funds.*holder backing, dividends and weekly refunds.*permanently retiring/);
@@ -61,6 +62,18 @@ for (const width of [1280, 375]) test(`${width}px white rabbit walks through rea
       await page.locator(`#panel-${item.panel}`).waitFor({ state: 'visible' });
       assert.equal(await page.locator(`#panel-${item.panel}`).isVisible(), true);
       if (item.focus) assert.equal(await page.evaluate(() => document.activeElement.id), item.focus);
+      if (index === 3) {
+        const guide = page.locator('#conversation-root details');
+        await guide.locator('summary').click();
+        await guide.locator('ol').waitFor({ state: 'visible' });
+        assert.equal(await guide.locator('a').getAttribute('href'), 'https://dlang-stewards.onrender.com/');
+        assert.equal(await guide.locator('ol > li').count(), 7);
+        const text = await guide.innerText();
+        assert.match(text, /Create private room.*Private room ID.*Join private room/s);
+        assert.match(text, /provider retention has not been verified/);
+        assert.match(text, /Either person leaving ends the room for both/);
+        assert.match(text, /denial\/listen-only, mute, leave and expiry/);
+      }
     }
     assert.deepEqual(await page.evaluate(() => window.__sensitive), []);
     assert.equal(await page.evaluate(() => localStorage.getItem('dlang-practice-active-v1')), null);

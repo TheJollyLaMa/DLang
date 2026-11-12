@@ -78,7 +78,29 @@ Voice is optional practice only. It is not connected to scored attempts,
 pronunciation grading, eligibility, rewards or payment. Do not use a transcript
 match or model confidence as a score or financial oracle.
 
-## Local checks and release gates
+## Walking two learners through their first call
+
+The white-rabbit tour's Voices hop opens the Voices panel and points to
+**How to practice together: two-device audio** beside Scene conversation.
+This expandable guide remains readable even when audio is unavailable.
+It links to the hosted app and explains the approved, distinct wallet
+requirement, host invitation, private room-ID sharing, guest signature,
+consent, listen-only mode, microphone permission and troubleshooting.
+It does not connect a wallet, start a room or capture audio by opening.
+
+For the first supervised test, confirm that both addresses are on the operator
+allowlist; do not request private keys. Use two physical devices with
+wallet-enabled browsers and headphones. Follow the in-app guide with a
+one-minute room. Check sound in both directions, mute, leave and expiry;
+use fresh rooms for permission-denial and listen-only checks. Either
+participant leaving ends the room for both. Muting is one-way in this client;
+speaking again requires a fresh room. Do not rapidly retry failed room creation:
+the pilot has one concurrent room and twenty creations per day.
+
+Record actual acceptance results separately from automated test results.
+The published instructions are not proof that real two-device audio works.
+
+## Automated checks and remaining release gates
 
 The automated conversation suite uses local HTTP, real wallet signatures and a
 fake LiveKit transport; it spends no provider credits and is not evidence of
