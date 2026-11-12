@@ -14,7 +14,9 @@ approved. Render renews automatically; no automatic cancellation is installed.
 Do not delete the service or its secrets as a substitute for a reviewed shutdown.
 
 Server-only LiveKit credentials are managed in Render environment variables.
-The initial voice allowlist is the existing five-wallet DLang pilot roster,
+The voice allowlist retains the existing five-wallet DLang pilot roster plus
+the explicitly approved `decentagency.eth` address
+(`0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a`),
 with one room, two concurrent sessions and twenty rooms/day. Paid rounds remain
 closed. Local `.env.services` and the derived `.env.render` are private,
 git-ignored files, not deployable public assets; never import a local loopback
@@ -25,6 +27,27 @@ Dated November 12 acceptance: public landing and `/health` return 200,
 returns 200, and a read-only provider request accepted the LiveKit credentials.
 No room was created for that check. These observations are not continuous
 monitoring or two-device media acceptance.
+
+November 12 live transport acceptance, after deploying `7b601d9`: two
+isolated Chromium contexts (1280px desktop and 375px mobile viewport) used
+real message signatures for `thejollylama.eth`
+(`0x807061DF657A7697c04045dA7d16D941861cAABc`) and `decentagency.eth`.
+Private keys stayed in the local signer process; no blockchain transaction
+was requested. Generated 440Hz/660Hz Web Audio tracks replaced microphone
+capture; they traversed the deployed HTTPS invitation/session/control API
+and real LiveKit WebRTC transport, not a fake media server.
+
+Both receivers reported advancing audio playback, received RTP packets
+(45/52 in the sampled interval) and positive decoded audio energy.
+Mute disabled the sending track, host-initiated teardown stopped both clients'
+capture and remote playback, and a second one-minute room verified listen-only mode
+(zero outbound audio packets for the listener) and automatic expiry.
+Provider inspection found zero remaining DLang rooms after cleanup.
+The first room tested host-initiated leave; it did not separately test
+guest-initiated leave. Initial Chromium fake-device capture failed with
+`NotSupportedError`; explicit generated tracks were used for the successful
+transport tests. This is not physical-device, actual microphone permission,
+audible speaker quality, pronunciation or provider-retention acceptance.
 
 Private invited audio is disabled unless an operator supplies all of the backend
 settings below. The operator wallet list is an admission allowlist, not proof
