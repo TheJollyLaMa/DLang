@@ -73,36 +73,37 @@ export function mountLanding() {
 }
 
 function mountFilm() {
-  const video = document.getElementById('landing-video'), button = document.getElementById('landing-motion');
+  const video = document.getElementById('landing-video'), status = document.getElementById('landing-film-status');
   const mobile = matchMedia('(max-width: 650px)'), reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let desired = !reduced.matches, source = '';
   video.muted = true;
   function state() {
-    const playing = !video.paused;
-    button.textContent = playing ? 'Pause animation' : 'Play animation';
-    button.setAttribute('aria-label', button.textContent);
-    button.setAttribute('aria-pressed', String(playing));
-    if (playing) video.classList.add('has-frame');
+    if (!video.paused) { video.classList.add('has-frame'); status.textContent = ''; }
   }
   async function update() {
     if (!desired || document.hidden) { video.pause(); state(); return; }
     const next = mobile.matches ? './dlang/media/landing-mobile.mp4' : './dlang/media/landing-desktop.mp4';
     if (source !== next) { source = next; video.classList.remove('has-frame'); video.src = next; video.load(); }
     try { await video.play(); }
-    catch { state(); }
+    catch (error) {
+      if (error.name === 'AbortError') return;
+      video.classList.remove('has-frame');
+      status.textContent = 'Animation unavailable · still image shown';
+    }
   }
-  button.onclick = () => { desired = video.paused; void update(); };
   video.addEventListener('playing', state);
   video.addEventListener('pause', state);
   video.addEventListener('error', () => {
     desired = false;
     video.classList.remove('has-frame');
-    button.textContent = 'Animation unavailable · still image shown';
-    button.setAttribute('aria-label', button.textContent);
-    button.setAttribute('aria-pressed', 'false');
+    status.textContent = 'Animation unavailable · still image shown';
   });
   mobile.addEventListener('change', () => { video.pause(); void update(); });
-  reduced.addEventListener('change', () => { desired = !reduced.matches; void update(); });
+  reduced.addEventListener('change', () => {
+    desired = !reduced.matches;
+    if (!desired) video.classList.remove('has-frame');
+    void update();
+  });
   document.addEventListener('visibilitychange', () => void update());
   window.addEventListener('pagehide', () => video.pause());
   void update();
