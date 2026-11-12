@@ -2,16 +2,28 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const { handleConversationRequest } = require('./services/conversation.cjs');
 const root = path.join(__dirname, 'public');
 const types = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.gif': 'image/gif', '.md': 'text/plain' };
 const csp = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://127.0.0.1:* http://localhost:* http://[::1]:*; frame-src 'none'; media-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
 
 function createServer(options = {}) {
-  return http.createServer((req, res) => {
-    res.setHeader('Content-Security-Policy', csp);
+  let policy = csp;
+  if (options.conversationLivekitOrigin) {
+    const url = new URL(options.conversationLivekitOrigin);
+    if (url.protocol !== 'wss:' || url.username || url.password || url.search || url.hash || url.pathname !== '/')
+      throw Error('Configure an exact WSS origin for private conversation.');
+    policy = policy.replace("connect-src 'self'", `connect-src 'self' ${url.origin}`);
+  }
+  return http.createServer(async (req, res) => {
+    res.setHeader('Content-Security-Policy', policy);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Cache-Control', 'no-store');
+    if (await handleConversationRequest(req, res, {
+      service: options.conversationService,
+      allowedOrigins: options.conversationOrigins || []
+    })) return;
     if (!['GET', 'HEAD'].includes(req.method)) {
       res.writeHead(405, { Allow: 'GET, HEAD' }); return res.end('DLang payment and mutation endpoints are disabled.');
     }

@@ -1,15 +1,28 @@
-import { YEAR_LIBRARY, PRACTICE_KEY, readPractice, nextScene, finishPractice, practiceStats, librarySVG, localDay } from './library.mjs';
+import { YEAR_LIBRARY, PRACTICE_KEY, SCENE_VERSION, readPractice, nextScene, finishPractice, practiceStats, practiceProgress, sceneHash, librarySVG, localDay } from './library.mjs';
 import { PACKS, LANGUAGE_NAMES } from './packs.mjs';
 const ACTIVE_KEY = 'dlang-practice-active-v1';
 export function mountPractice({ storage, audio, report }) {
   const $ = id => document.getElementById(id);
-  let active = null, scene = null, chosen = null, state, timer, previewKey = '';
+  let active = null, scene = null, previewScene = null, chosen = null, state, timer, previewKey = '';
   const languages = $('practice-language');
   languages.replaceChildren(...Object.keys(PACKS).map(tag => new Option(LANGUAGE_NAMES[tag], tag)));
+  function getSceneContext() {
+    const current = active && scene ? scene : previewScene;
+    if (!current) return null;
+    return {
+      scene: structuredClone(current), sceneId: current.id, sceneVersion: SCENE_VERSION, sceneHash: sceneHash(current),
+      level: current.level, language: active?.language || languages.value,
+      concepts: current.targets.map(target => target.concept)
+    };
+  }
+  function announceSceneContext() {
+    window.dispatchEvent(new CustomEvent('dlang:scene', { detail: getSceneContext() }));
+  }
   function load() { state = readPractice(storage); }
   function summary() {
     const stats = practiceStats(state);
-    $('practice-summary').textContent = `${stats.today} of 3 sessions today · ${stats.sessions} completed · ${stats.concepts} concepts explored · ${stats.due} due for review`;
+    const progress = practiceProgress(state);
+    $('practice-summary').textContent = `${stats.today} of 3 sessions today · ${stats.sessions} completed · Level ${progress.level} of 6 · ${progress.title} · ${progress.completedInLevel} of ${progress.totalInLevel} scenes in this level · ${stats.concepts} concepts explored · ${stats.due} due for review`;
     $('practice-start').disabled = !!active || stats.today >= 3 || !nextScene(state);
     languages.disabled = !!active;
     $('practice-finish').hidden = !active;
@@ -30,7 +43,10 @@ export function mountPractice({ storage, audio, report }) {
       };
       const node = $('practice-scene').querySelector(`[data-target="${target.id}"]`);
       node.onclick = choose; node.onkeydown = event => { if (['Enter', ' '].includes(event.key)) { event.preventDefault(); choose(); } };
-      const button = document.createElement('button'); button.textContent = target.concept; button.onclick = choose; $('practice-objects').append(button);
+      const label = PACKS[active.language][target.concept].label;
+      const button = document.createElement('button'); button.type = 'button'; button.lang = active.language;
+      button.textContent = label; button.setAttribute('aria-label', `Listen to ${label}`);
+      button.onclick = choose; $('practice-objects').append(button);
     }
   }
   function stop() { clearInterval(timer); timer = null; }
@@ -39,11 +55,13 @@ export function mountPractice({ storage, audio, report }) {
     stop();
     try {
       const stored = JSON.parse(storage.getItem(ACTIVE_KEY) || 'null');
-      if (stored?.scene !== active.scene || stored.deadline !== active.deadline) throw Error('This session changed in another tab. Reload to continue.');
+      if (stored?.scene !== active.scene || stored?.sceneVersion !== SCENE_VERSION
+        || stored?.sceneHash !== sceneHash(scene) || stored.deadline !== active.deadline) throw Error('This session changed in another tab. Reload to continue.');
       load();
       const result = finishPractice(state, scene, stored.outcomes, active.language, Math.min(Date.now(), active.deadline - 1));
       storage.setItem(PRACTICE_KEY, JSON.stringify(result)); storage.removeItem(ACTIVE_KEY); state = result;
       active = null; scene = null; chosen = null; summary(); paint();
+      announceSceneContext();
       $('practice-word').disabled = true; $('practice-again').disabled = true; $('practice-remembered').disabled = true;
       $('practice-timer').textContent = 'Session complete';
       $('practice-help').textContent = 'A little more of the world has a name. Your next reviews are scheduled from your self-assessments.';
@@ -55,13 +73,14 @@ export function mountPractice({ storage, audio, report }) {
     $('practice-timer').textContent = `${remaining}s · ${Object.keys(active.outcomes).length} / 12 reviewed`;
     if (!remaining) finish();
   }
-  function run() { scene = YEAR_LIBRARY.find(s => s.id === active.scene); languages.value = active.language; paint(); tick(); if (active) timer = setInterval(tick, 500); summary(); }
+  function run() { scene = YEAR_LIBRARY.find(s => s.id === active.scene); languages.value = active.language; paint(); tick(); if (active) timer = setInterval(tick, 500); summary(); announceSceneContext(); }
   for (const [id, remembered] of [['practice-again', false], ['practice-remembered', true]]) $(id).onclick = () => {
     if (!active || !chosen) return;
     if (Date.now() >= active.deadline) { finish(); return; }
     try {
       const stored = JSON.parse(storage.getItem(ACTIVE_KEY) || 'null');
-      if (stored?.scene !== active.scene || stored.deadline !== active.deadline) throw Error('Session changed in another tab; reload.');
+      if (stored?.scene !== active.scene || stored?.sceneVersion !== SCENE_VERSION
+        || stored?.sceneHash !== sceneHash(scene) || stored.deadline !== active.deadline) throw Error('Session changed in another tab; reload.');
       active = stored; active.outcomes[chosen] = remembered; storage.setItem(ACTIVE_KEY, JSON.stringify(active));
       $('practice-help').textContent = remembered ? 'Remembered · next review moves farther away.' : 'Again · this concept returns sooner.';
       $('practice-again').disabled = true; $('practice-remembered').disabled = true; tick();
@@ -74,7 +93,8 @@ export function mountPractice({ storage, audio, report }) {
       if (storage.getItem(ACTIVE_KEY)) throw Error('A practice session is already running. Reload to resume it.');
       load(); const next = nextScene(state); if (!next) throw Error('Your three sessions are complete, or no fresh images are available yet.');
       const now = new Date(), midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
-      active = { scene: next.id, language: languages.value, started: now.getTime(), deadline: Math.min(now.getTime() + 120000, midnight.getTime()), outcomes: {}, day: localDay(now) };
+      active = { scene: next.id, sceneVersion: SCENE_VERSION, sceneHash: sceneHash(next), language: languages.value,
+        started: now.getTime(), deadline: Math.min(now.getTime() + 120000, midnight.getTime()), outcomes: {}, day: localDay(now) };
       storage.setItem(ACTIVE_KEY, JSON.stringify(active)); run();
     } catch (error) { report(error.message); }
   };
@@ -87,12 +107,14 @@ export function mountPractice({ storage, audio, report }) {
     previewKey = key;
     $('library-word').disabled = true;
     const preview = YEAR_LIBRARY[day * 3 + +$('library-slot').value];
+    previewScene = preview;
     $('library-preview').innerHTML = librarySVG(preview);
     for (const target of preview.targets) {
       const node = $('library-preview').querySelector(`[data-target="${target.id}"]`);
       const choose = () => { $('library-word').textContent = PACKS[languages.value][target.concept].label; $('library-word').lang = languages.value; $('library-word').disabled = false; $('library-word').onclick = () => { void audio.play(languages.value, target.concept); }; void audio.play(languages.value, target.concept); };
       node.onclick = choose; node.onkeydown = event => { if (['Enter', ' '].includes(event.key)) { event.preventDefault(); choose(); } };
     }
+    announceSceneContext();
   };
   $('library-slot').onchange = () => $('library-day').onchange();
   $('library-day').oninput = () => $('library-day').onchange();
@@ -105,14 +127,22 @@ export function mountPractice({ storage, audio, report }) {
     const raw = storage.getItem(ACTIVE_KEY);
     if (raw) {
       const value = JSON.parse(raw), target = YEAR_LIBRARY.find(s => s.id === value.scene);
-      if (!target || !PACKS[value.language] || !Number.isFinite(value.deadline) || !Number.isFinite(value.started)
+      if (!target && /^year-\d{4}$/.test(value?.scene) && value.sceneVersion == null) {
+        storage.removeItem(ACTIVE_KEY);
+        report('An unfinished session from the previous library was cleared; no answers were counted.');
+      } else if (!target || value.sceneVersion !== SCENE_VERSION || value.sceneHash !== sceneHash(target)
+        || !PACKS[value.language] || !Number.isFinite(value.deadline) || !Number.isFinite(value.started)
         || value.started < 0 || value.started > Date.now() || value.day !== localDay(new Date(value.started))
-        || value.deadline <= value.started || value.deadline - value.started > 120000 || !value.outcomes || Array.isArray(value.outcomes)
+        || value.deadline <= value.started || value.deadline - value.started > 120000
+        || value.deadline > new Date(new Date(value.started).setHours(24, 0, 0, 0)).getTime()
+        || !value.outcomes || typeof value.outcomes !== 'object' || Array.isArray(value.outcomes)
+        || Object.keys(value.outcomes).length > target.targets.length
         || Object.entries(value.outcomes).some(([id, result]) => !target.targets.some(t => t.concept === id) || typeof result !== 'boolean')) throw Error('Saved session is invalid; clear the active session before starting again.');
-      if (state.attempts.some(a => a.scene === value.scene)) storage.removeItem(ACTIVE_KEY);
+      else if (state.attempts.some(a => a.sceneVersion === SCENE_VERSION && a.scene === value.scene)) storage.removeItem(ACTIVE_KEY);
       else { active = value; run(); }
     }
     summary();
   } catch (error) { report(error.message); $('practice-start').disabled = true; }
   window.addEventListener('storage', event => { if ([PRACTICE_KEY, ACTIVE_KEY].includes(event.key)) { stop(); active = null; scene = null; chosen = null; paint(); $('practice-word').disabled = true; $('practice-again').disabled = true; $('practice-remembered').disabled = true; try { load(); const raw = storage.getItem(ACTIVE_KEY); if (raw) { report('Practice changed in another tab. Reload to resume.'); $('practice-start').disabled = true; } else { summary(); } } catch (error) { report(error.message); } } });
+  return { getSceneContext };
 }

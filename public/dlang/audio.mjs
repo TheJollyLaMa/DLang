@@ -1,7 +1,20 @@
 import { PACKS, LANGUAGE_NAMES } from './packs.mjs';
 import { cid, digest } from './storage.mjs';
+import { reviewStatus, sceneSnapshot, validateContribution } from './steward.mjs';
 export const MAX_VOICE_BYTES = 1024 * 1024;
 export const VOICE_TYPES = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/mpeg'];
+export async function nextReviewedNarration(records, language, sceneContext, previousId = '') {
+  const snapshot = await sceneSnapshot(sceneContext, language), matches = [];
+  for (const record of records) {
+    await validateContribution(record);
+    if (record.language === language && record.scene.sceneId === snapshot.sceneId
+      && record.scene.sceneVersion === snapshot.sceneVersion && record.scene.sceneHash === snapshot.sceneHash
+      && reviewStatus(record).status === 'local-approved') matches.push(record);
+  }
+  if (!matches.length) return null;
+  const index = matches.findIndex(record => record.id === previousId);
+  return matches[(index + 1) % matches.length];
+}
 export function validateVoice(entry) {
   if (!entry || entry.version !== 1 || !PACKS[entry.language]?.[entry.concept] || typeof entry.speaker !== 'string'
     || !entry.speaker.trim() || entry.speaker.length > 60 || entry.license !== 'CC-BY-4.0'
@@ -26,6 +39,84 @@ export function nextVoice(voices, language, concept, previous = '') {
   if (!matches.length) return null;
   return matches[(matches.findIndex(voice => voice.cid === previous) + 1) % matches.length];
 }
+
+export function createNarrationTurnPlayer({ load, AudioConstructor = globalThis.Audio, createURL = blob => URL.createObjectURL(blob), revokeURL = url => URL.revokeObjectURL(url) }) {
+  let generation = 0, player = null, mediaURL = null, cancelActive = null;
+  function stop() {
+    generation++;
+    player?.pause();
+    cancelActive?.(Error('Narration playback stopped.'));
+    cancelActive = null;
+    if (mediaURL) revokeURL(mediaURL);
+    mediaURL = null;
+    player = null;
+  }
+  async function play(record, index, prepare = () => load(record)) {
+    stop();
+    const request = generation;
+    const blob = await prepare();
+    if (request !== generation) throw Error('Narration playback was cancelled before it started.');
+    const turn = record.turns[index];
+    if (!turn || typeof AudioConstructor !== 'function') throw Error('Narration turn is unavailable in this browser.');
+    const ownGeneration = generation;
+    mediaURL = createURL(blob);
+    player = new AudioConstructor(mediaURL);
+    const element = player;
+    let startResolve, startReject, doneResolve, doneReject, finished = false;
+    const started = new Promise((resolve, reject) => { startResolve = resolve; startReject = reject; });
+    const done = new Promise((resolve, reject) => { doneResolve = resolve; doneReject = reject; });
+    void done.catch(() => {});
+    const cleanup = () => {
+      element.removeEventListener('loadedmetadata', onReady);
+      element.removeEventListener('timeupdate', onTime);
+      element.removeEventListener('ended', onEnded);
+      element.removeEventListener('pause', onPause);
+      element.removeEventListener('error', onError);
+      if (cancelActive === cancel) cancelActive = null;
+    };
+    const fail = error => {
+      if (finished) return;
+      finished = true; cleanup(); startReject(error); doneReject(error);
+    };
+    const complete = () => {
+      if (finished) return;
+      finished = true; cleanup(); doneResolve({ completed: true });
+    };
+    const cancel = error => fail(error);
+    const onReady = async () => {
+      try {
+        if (ownGeneration !== generation || !Number.isFinite(element.duration) || turn.end > element.duration + .3) {
+          throw Error('Narration turn marks exceed the decoded audio duration.');
+        }
+        element.currentTime = turn.start;
+        await element.play();
+        if (ownGeneration !== generation || finished) throw Error('Narration playback was cancelled.');
+        if (element.muted) throw Error('Muted narration cannot qualify as a local play.');
+        startResolve(element);
+      } catch (error) { fail(error); }
+    };
+    const onTime = () => {
+      if (element.currentTime + .025 >= turn.end) {
+        element.pause();
+        complete();
+      }
+    };
+    const onEnded = () => complete();
+    const onPause = () => { if (!finished && element.currentTime + .025 < turn.end) fail(Error('Narration was paused or interrupted.')); };
+    const onError = () => fail(Error('Narration audio could not be decoded.'));
+    cancelActive = cancel;
+    element.addEventListener('loadedmetadata', onReady, { once: true });
+    element.addEventListener('timeupdate', onTime);
+    element.addEventListener('ended', onEnded, { once: true });
+    element.addEventListener('pause', onPause);
+    element.addEventListener('error', onError, { once: true });
+    await started;
+    if (ownGeneration !== generation) throw Error('Narration playback was cancelled.');
+    return { audio: element, done };
+  }
+  return { play, stop, get audio() { return player; } };
+}
+
 function drafts() {
   const request = indexedDB.open('dlang-voice-drafts', 1);
   request.onupgradeneeded = () => request.result.createObjectStore('drafts');
@@ -44,8 +135,9 @@ async function draft(action, key, value) {
 }
 export function mountAudio({ ipfs, openDialog }) {
   const $ = id => document.getElementById(id);
-  let voices = [], language = 'en', concept = 'chair', recorder, stream, chunks = [], recordingAt, timer, selected, recordingContext, player, mediaURL, generation = 0, draftGeneration = 0;
+  let voices = [], narrations = [], language = 'en', concept = 'chair', recorder, stream, chunks = [], recordingAt, timer, selected, recordingContext, player, mediaURL, generation = 0, draftGeneration = 0, turnPlayer;
   const previous = new Map();
+  const narrationPrevious = new Map();
   const key = () => `${language}:${concept}`;
   const status = text => { $('audio-status').textContent = text; $('voice-status').textContent = text; };
   const labels = () => {
@@ -64,18 +156,84 @@ export function mountAudio({ ipfs, openDialog }) {
   }
   function stopPlayer() {
     generation++; player?.pause(); globalThis.speechSynthesis?.cancel();
+    turnPlayer?.stop();
     if (mediaURL) URL.revokeObjectURL(mediaURL); mediaURL = null;
   }
   async function playBlob(blob) {
-    stopPlayer(); mediaURL = URL.createObjectURL(blob); player = new Audio(mediaURL);
-    player.onerror = () => status('This audio cannot be decoded. Try a different voice or record an example.');
-    await player.play();
+    stopPlayer();
+    const ownGeneration = generation;
+    mediaURL = URL.createObjectURL(blob); player = new Audio(mediaURL);
+    const currentPlayer = player;
+    currentPlayer.onerror = () => status('This audio cannot be decoded. Try a different voice or record an example.');
+    await currentPlayer.play();
+    if (ownGeneration !== generation) {
+      currentPlayer.pause();
+      throw Error('Audio playback was cancelled.');
+    }
   }
-  async function play(tag, id) {
+  async function narrationBlob(record) {
+    const blob = record.localBlob instanceof Blob ? record.localBlob : await ipfs.read(cid(record.audio.cid), 2 * 1024 * 1024);
+    if (blob.size !== record.audio.size || await digest(blob) !== record.audio.sha256) {
+      throw Error('Narration audio does not match its immutable scene record.');
+    }
+    return new Blob([blob], { type: record.audio.type });
+  }
+  turnPlayer = createNarrationTurnPlayer({
+    load: narrationBlob,
+    AudioConstructor: globalThis.Audio
+  });
+  async function setNarrations(records) {
+    if (!Array.isArray(records) || records.length > 5000) throw Error('Narration rotation is invalid.');
+    const checked = [];
+    for (const record of records) {
+      await validateContribution(record);
+      if (reviewStatus(record).status !== 'local-approved') continue;
+      if (!record.audio.cid && !(record.localBlob instanceof Blob)) continue;
+      checked.push(record);
+    }
+    narrations = checked;
+    return narrations.length;
+  }
+  async function selectNarration(tag, sceneContext) {
+    const snapshot = await sceneSnapshot(sceneContext, tag), key = `${tag}:${snapshot.sceneHash}`;
+    const previousId = narrationPrevious.get(key);
+    const selectedNarration = await nextReviewedNarration(narrations, tag, sceneContext, previousId);
+    if (!selectedNarration) return null;
+    narrationPrevious.set(key, selectedNarration.id);
+    return selectedNarration;
+  }
+  async function playNarrationTurn(record, index) {
+    stopPlayer();
+    return turnPlayer.play(record, index, async () => {
+      await validateContribution(record);
+      if (reviewStatus(record).status !== 'local-approved' || !Number.isInteger(index) || !record.turns[index]) {
+        throw Error('Narration turn is not in the local reviewed rotation.');
+      }
+      return narrationBlob(record);
+    });
+  }
+  async function play(tag, id, sceneContext = null) {
     if (language !== tag || concept !== id) { selected = null; draftGeneration++; $('voice-publish').disabled = true; $('voice-preview').disabled = true; }
     language = tag; concept = id; labels(); stopPlayer();
     const current = generation, entry = PACKS[tag]?.[id];
-    if (!entry) { status('Audio is unavailable for this word.'); return; }
+    let narrationError = '';
+    if (sceneContext) {
+      try {
+        const narration = await selectNarration(tag, sceneContext);
+        if (narration) {
+          const blob = await narrationBlob(narration);
+          if (current !== generation) return;
+          await playBlob(blob);
+          status(`${narration.credit} · reviewed scene narration · local review only, not payment authority.`);
+          return { source: 'local-reviewed-narration', narration };
+        }
+      } catch (error) {
+        if (current !== generation) return;
+        narrationError = error.message;
+        status(`Scene narration unavailable: ${narrationError} Trying word audio instead.`);
+      }
+    }
+    if (!entry) { status(`Audio is unavailable for this word.${narrationError ? ` Scene narration: ${narrationError}` : ''}`); return; }
     const voice = nextVoice(voices, tag, id, previous.get(key()));
     if (voice) {
       previous.set(key(), voice.cid);
@@ -85,11 +243,11 @@ export function mountAudio({ ipfs, openDialog }) {
         if (await digest(blob) !== voice.sha256 || blob.size !== voice.size) throw Error('Voice content does not match the reviewed recording.');
         if (current !== generation) return;
         await playBlob(new Blob([blob], { type: voice.type }));
-        status(`${voice.speaker} · reviewed community recording · tap again for another voice.`);
+        status(`${voice.speaker} · reviewed community recording · tap again for another voice.${narrationError ? ` Scene narration unavailable: ${narrationError}` : ''}`);
       } catch (error) { status(`Recording unavailable: ${error.message} You can record a new example.`); }
       return;
     }
-    if (!globalThis.speechSynthesis) { status('No device audio available. Record an example for this word.'); return; }
+    if (!globalThis.speechSynthesis) { status(`No device audio available. Record an example for this word.${narrationError ? ` Scene narration unavailable: ${narrationError}` : ''}`); return; }
     const locale = tag === 'zh-Hans' ? 'zh-CN' : tag;
     const available = speechSynthesis.getVoices().filter(v => v.lang.toLowerCase().split('-')[0] === locale.split('-')[0]);
     if (!available.length) { status('No matching device voice installed. You can record a native-speaker example.'); return; }
@@ -97,7 +255,7 @@ export function mountAudio({ ipfs, openDialog }) {
     previous.set(rotationKey, index);
     const utterance = new SpeechSynthesisUtterance(entry.label); utterance.lang = locale; utterance.voice = available[index]; utterance.rate = .85;
     utterance.onerror = event => status(`Device speech unavailable (${event.error}). Record or choose an example.`);
-    speechSynthesis.speak(utterance); status(`${available[index].name} · device synthesis, not a native-speaker recording.`);
+    speechSynthesis.speak(utterance); status(`${available[index].name} · device synthesis, not a native-speaker recording.${narrationError ? ` Scene narration unavailable: ${narrationError}` : ''}`);
   }
   $('voice-open').onclick = () => { openDialog('voice-dialog'); void loadDraft(); };
   for (const id of ['voice-language', 'voice-concept']) $(id).onchange = () => { language = $('voice-language').value; concept = $('voice-concept').value; void loadDraft(); };
@@ -120,14 +278,14 @@ export function mountAudio({ ipfs, openDialog }) {
         clearTimeout(timer); stream.getTracks().forEach(track => track.stop());
         $('voice-record').textContent = 'Record my pronunciation'; $('voice-language').disabled = false; $('voice-concept').disabled = false;
         if (failed) { await loadDraft(); status('Recording failed; no new draft saved or published.'); return; }
-        const blob = new Blob(chunks, { type: type.split(';')[0] }), duration = (Date.now() - recordingAt) / 1000;
+        const blob = new Blob(chunks, { type: type.split(';')[0] }), duration = Math.min(15, (Date.now() - recordingAt) / 1000);
         try {
-          if (!blob.size || blob.size > MAX_VOICE_BYTES || duration < .2 || duration > 15) throw Error('Record between 0.2 and 15 seconds, up to 1 MiB. Delayed/background recordings that exceed the limit are not saved.');
+          if (!blob.size || blob.size > MAX_VOICE_BYTES || duration < .2) throw Error('Record between 0.2 and 15 seconds, up to 1 MiB.');
           await draft('put', recordingContext.key, { blob, duration, language: recordingContext.language, concept: recordingContext.concept });
           await loadDraft(); status('Draft saved on this device. Preview it; Publish makes your voice public.');
         } catch (error) { status(error.message); }
       };
-      recorder.start(250); timer = setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 14900);
+      recorder.start(250); timer = setTimeout(() => { if (recorder.state === 'recording') recorder.stop(); }, 15000);
       $('voice-record').textContent = 'Stop recording'; status('Recording locally · maximum 15 seconds.');
     } catch (error) { stream?.getTracks().forEach(track => track.stop()); status(`Microphone unavailable: ${error.message}`); }
     finally { $('voice-record').disabled = false; }
@@ -159,5 +317,11 @@ export function mountAudio({ ipfs, openDialog }) {
     .then(value => { voices = validateVoices(value); status(voices.length ? `${voices.length} reviewed community voices available.` : 'Community recordings are open for contributions. Device voices play when installed.'); })
     .catch(error => status(`Community library unavailable: ${error.message} Device voices may still be available.`));
   labels();
-  return { play };
+  return {
+    play,
+    setNarrations,
+    selectNarration,
+    playNarrationTurn,
+    stopNarration: stopPlayer
+  };
 }

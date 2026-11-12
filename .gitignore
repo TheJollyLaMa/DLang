@@ -5,4 +5,5 @@ _site/
 *.log
 .env
 .env.*
+data/
 .DS_Store

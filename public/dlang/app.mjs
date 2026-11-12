@@ -2,12 +2,16 @@ import { Round, availability, totalScore, studyLabels, previewAccounting, KEY } 
 import { PACKS, LANGUAGE_NAMES } from './packs.mjs';
 import { SCENES, DESCRIPTIONS, sceneSVG } from './scenes.mjs';
 import { mountPersonal } from './personal.mjs';
+import { mountWords } from './words.mjs';
 import { mountTutorial } from './tutorial.mjs';
 import { pilotEligibility } from './pilot.mjs';
 import { createStorage } from './storage.mjs';
 import { mountStorage } from './storage-ui.mjs';
 import { mountAudio } from './audio.mjs';
 import { mountPractice } from './practice.mjs';
+import { mountWordMap } from './wordmap.mjs';
+import { mountConversation } from './conversation.mjs';
+import { mountNarration } from './narration.mjs';
 const $ = id => document.getElementById(id);
 const languageName = tag => LANGUAGE_NAMES[tag] || tag;
 $('language').replaceChildren(...Object.keys(PACKS).map(tag => new Option(languageName(tag), tag)), new Option('Other — unsupported in this seed preview', 'other'));
@@ -28,6 +32,29 @@ let storage;
 try { storage = localStorage; } catch { storage = { getItem() { throw Error('Browser storage unavailable.'); }, setItem() { throw Error('Browser storage unavailable.'); } }; }
 const engine = new Round({ config, scenes: SCENES, packs: PACKS, storage });
 let walletAddress = '', eligibility = null, checking = false, selectedTarget = null, studyTarget = 'chair', recognition = null, lastAttempt = '', lastFinished = '';
+let narration = null, conversation = null, sharedScene = null, scoredPracticeBlocked = false;
+function getSceneContext() {
+  if (scoredPracticeBlocked) return null;
+  const scene = sharedScene?.scene || SCENES[Number($('scene-select').value) || 0];
+  return {
+    sceneId: sharedScene?.sceneId || scene.id,
+    sceneVersion: sharedScene?.sceneVersion || 'dlang-weekly-v1',
+    sceneHash: sharedScene?.sceneHash,
+    title: scene.title, scene, level: sharedScene?.level || 1,
+    language: sharedScene?.language || $('study-languages').querySelector('input:checked')?.value || 'en',
+    concepts: scene.targets.map(target => target.concept)
+  };
+}
+function setScoredPracticeBlocked(blocked) {
+  if (scoredPracticeBlocked === blocked) return;
+  scoredPracticeBlocked = blocked;
+  for (const id of ['narration-root', 'conversation-root']) {
+    $(id).hidden = blocked;
+    if (blocked) $(id).querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+  }
+  narration?.setBlocked(blocked);
+  conversation?.setBlocked(blocked);
+}
 const dialogFocus = new WeakMap();
 function openDialog(id) {
   const dialog = $(id);
@@ -68,6 +95,7 @@ globalThis.DECENT_CONFIG = {
 const { DecentHead } = await import('../vendor/decent-head/2.0.0/js/main.js');
 const report = message => { $('dlang-status').textContent = message; };
 const personal = mountPersonal({ storage, report });
+mountWords({ storage });
 const header = document.querySelector('decent-header');
 header.addEventListener('decenthead:menu', event => {
   if (event.detail?.side === 'left') openDialog('admin-dialog');
@@ -75,6 +103,7 @@ header.addEventListener('decenthead:menu', event => {
 });
 DecentHead.on('wallet', state => {
   walletAddress = state.connected ? state.address : '';
+  window.dispatchEvent(new CustomEvent('dlang:wallet', { detail: { address: walletAddress } }));
   eligibility = null;
   $('wallet-state').textContent = walletAddress ? 'Wallet connected · explicit public contributor check required' : 'Wallet optional for study · not connected';
   $('pilot-status').textContent = 'Wallet changed or disconnected: previous display eligibility cleared. No automatic authorization.';
@@ -91,7 +120,18 @@ $('history-open').onclick = () => { renderHistory(); openDialog('history-dialog'
 $('admin-config').textContent = JSON.stringify(config, null, 2);
 mountStorage({ ipfs, storage, openDialog });
 const audio = mountAudio({ ipfs, openDialog });
-mountPractice({ storage, audio, report });
+const practice = mountPractice({ storage, audio, report });
+sharedScene = practice.getSceneContext();
+narration = mountNarration({
+  storage, ipfs, audio, report, getSceneContext, getAddress: () => walletAddress,
+  getWallet: async () => {
+    const snapshot = DecentHead.getWallet().snapshot();
+    if (!snapshot.connected) throw Error('Connect a wallet in the shared header first.');
+    return { address: snapshot.address, signer: await snapshot.provider.getSigner(snapshot.address) };
+  }
+});
+mountWordMap({ storage, openDialog });
+conversation = mountConversation({ storage, report, getSceneContext });
 mountTutorial({ openDialog, languages: Object.keys(PACKS).map(languageName) });
 $('about-languages').textContent = Object.keys(PACKS).map(languageName).join(' · ');
 function act(operation) {
@@ -203,8 +243,20 @@ function renderStudy() {
   }
   if (!recognition) renderLabels();
 }
-$('scene-select').onchange = () => { recognition = null; $('recognition-status').textContent = ''; renderStudy(); };
-$('study-languages').onchange = () => { if (!recognition) renderLabels(); };
+$('scene-select').onchange = () => {
+  sharedScene = null; recognition = null; $('recognition-status').textContent = ''; renderStudy();
+  narration?.refreshContext?.(); conversation?.refreshContext?.();
+};
+$('study-languages').onchange = () => {
+  sharedScene = null;
+  if (!recognition) renderLabels();
+  narration?.refreshContext?.(); conversation?.refreshContext?.();
+};
+window.addEventListener('dlang:scene', event => {
+  if (!event.detail?.scene?.targets) return;
+  sharedScene = event.detail;
+  narration?.refreshContext?.(); conversation?.refreshContext?.();
+});
 $('recognition').onclick = () => {
   recognition = { concept: studyTarget };
   $('scene-select').value = String((+$('scene-select').value + 1) % SCENES.length);
@@ -232,6 +284,7 @@ function countdown(ms) {
 function render() {
   try {
     const { state, status, now, previousState } = engine.context();
+    setScoredPracticeBlocked(Object.values(state.attempts).some(attempt => attempt.status === 'running'));
     $('schedule').textContent = status.available ? `Timezone: ${status.timezone} · starts ${new Intl.DateTimeFormat('en-US', { timeZone: status.timezone, dateStyle: 'full', timeStyle: 'short' }).format(status.boundaries[0])} (${new Date(status.boundaries[0]).toISOString()}) · enrollment cutoff ${new Date(status.cutoff).toISOString()}` : status.reason;
     $('countdown').textContent = status.next ? `${status.started ? 'Daily turnover' : 'Get Ready · next round starts'} in ${countdown(status.next - now)}${status.started ? ` · week ends in ${countdown(status.boundaries[7] - now)}` : ''}` : status.ended ? 'Week complete. No next round configured.' : 'Countdown unavailable — no schedule invented.';
     $('enroll').disabled = !status.available || !status.enrollmentOpen || !!state.language || !eligibility?.eligible || !PACKS[$('language').value];
@@ -269,6 +322,7 @@ function render() {
       if (key !== lastFinished) { lastFinished = key; $('finishline').focus({ preventScroll: true }); }
     }
   } catch (error) {
+    setScoredPracticeBlocked(true);
     report(`${error.message} Local persistence unavailable/invalid: scored starts are blocked.`);
     $('go').disabled = true; $('enroll').disabled = true; $('answer').disabled = true;
   }

@@ -34,6 +34,49 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 export function extraObject(concept, design, color) {
   const wood = ['#b58965', '#788b80', '#b28c87', '#b9a17c'][design % 4];
   const shape = design % 4;
+  const wrap = inner => `<g stroke="#283f46" stroke-width="2.5" stroke-linejoin="round">${inner}</g>`;
+  const COUNTS = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+  if (COUNTS[concept]) {
+    // Countable berries on a shelf; the numeral rides along like a parent counting aloud.
+    const n = COUNTS[concept];
+    const items = Array.from({ length: n }, (_, i) => {
+      const cx = 16 + (i % 4) * 22 + (shape % 2) * 2, cy = 26 + Math.floor(i / 4) * 26;
+      return `<circle cx="${cx}" cy="${cy}" r="9.5" fill="${color}"/><path d="M${cx} ${cy - 9} q2 -7 8 -9" fill="none"/>`;
+    }).join('');
+    return wrap(`<path d="M3 92 H97" stroke="${wood}" stroke-width="6"/>${items}<text x="78" y="99" font-family="Georgia,serif" font-size="25" fill="#283f46" stroke="none">${n}</text>`);
+  }
+  const PAINT = { red: '#c23b2c', blue: '#2f5fc0', yellow: '#e5b92f', green: '#3f8a46', black: '#2b2b31', white: '#f6f2e7', orange: '#df7e28', purple: '#7a4b9b' };
+  if (PAINT[concept]) {
+    // The paint names itself: pot, brush and splash all wear the color.
+    const paint = PAINT[concept];
+    return wrap(`<path d="M22 46 H78 L72 93 H28Z" fill="#d9c49b"/><ellipse cx="50" cy="46" rx="28" ry="${8 + shape}" fill="${paint}"/>
+      <path d="M60 39 L78 7 L87 12 L68 42Z" fill="${wood}"/><path d="M78 7 L87 12 L83 19 L74 13Z" fill="${paint}"/>
+      <path d="M12 26 q4 -13 12 -3 q9 -9 7 5 q8 2 -2 8 q-13 4 -17 -10Z" fill="${paint}"/><path d="M34 62 H66 M38 75 H62" fill="none" stroke="#f3e3bd"/>`);
+  }
+  const FACES = {
+    happy: `<circle cx="38" cy="44" r="4" fill="#283f46"/><circle cx="64" cy="44" r="4" fill="#283f46"/><path d="M30 60 Q51 80 72 60" fill="none" stroke-width="4"/>`,
+    sad: `<circle cx="38" cy="46" r="4" fill="#283f46"/><circle cx="64" cy="46" r="4" fill="#283f46"/><path d="M32 72 Q51 56 70 72" fill="none" stroke-width="4"/><path d="M68 54 q8 12 0 14 q-7 -2 0 -14Z" fill="#79b4d0"/>`,
+    angry: `<path d="M29 36 L46 43 M73 36 L56 43" stroke-width="4" fill="none"/><circle cx="39" cy="49" r="4" fill="#283f46"/><circle cx="63" cy="49" r="4" fill="#283f46"/><path d="M34 70 H68" stroke-width="5" fill="none"/>`,
+    scared: `<circle cx="38" cy="45" r="7" fill="#fdf5e0"/><circle cx="64" cy="45" r="7" fill="#fdf5e0"/><circle cx="38" cy="46" r="3" fill="#283f46"/><circle cx="64" cy="46" r="3" fill="#283f46"/><path d="M36 68 q7 8 14 0 q8 8 15 0" fill="none" stroke-width="4"/>`,
+    tired: `<path d="M31 46 Q38 52 46 46 M57 46 Q64 52 71 46" fill="none" stroke-width="4"/><path d="M34 68 Q51 74 68 68" fill="none" stroke-width="4"/><path d="M70 14 h13 l-13 11 h13 M87 32 h9 l-9 8 h9" fill="none"/>`,
+    surprised: `<path d="M30 33 Q38 27 46 33 M56 33 Q64 27 72 33" fill="none"/><circle cx="38" cy="45" r="5" fill="#283f46"/><circle cx="64" cy="45" r="5" fill="#283f46"/><ellipse cx="51" cy="68" rx="8" ry="11" fill="#7c4a3e"/>`,
+    calm: `<path d="M31 46 Q38 51 45 46 M57 46 Q64 51 71 46" fill="none" stroke-width="4"/><path d="M36 66 Q51 74 66 66" fill="none" stroke-width="4"/><path d="M12 20 q6 -8 12 0 M78 20 q6 -8 12 0" fill="none"/>`,
+    proud: `<circle cx="38" cy="44" r="4" fill="#283f46"/><circle cx="64" cy="44" r="4" fill="#283f46"/><path d="M32 62 Q51 76 70 62" fill="none" stroke-width="4"/><path d="M83 12 l3 8 8 1 -6 6 2 8 -7 -4 -7 4 2 -8 -6 -6 8 -1Z" fill="#edc766"/>`
+  };
+  if (FACES[concept]) return wrap(`<circle cx="51" cy="52" r="40" fill="${['#f0cf96', '#e5b98a', '#d8a877', '#f3dcae'][shape]}"/><path d="M51 92 q-26 2 -34 -16" fill="none" opacity=".4"/>${FACES[concept]}`);
+  const FIGURES = {
+    eat: `<circle cx="30" cy="27" r="10" fill="#e8bd8f"/><path d="M30 37 V70 M30 70 L20 94 M30 70 L40 94 M30 46 L48 38" stroke-width="5" fill="none"/><path d="M60 52 H96 M66 52 V94 M90 52 V94" stroke-width="5" fill="none" stroke="${wood}"/><path d="M62 44 Q78 56 94 44 L92 38 H64Z" fill="${color}"/><path d="M48 38 L40 29" stroke-width="4" fill="none"/>`,
+    drink: `<circle cx="46" cy="25" r="10" fill="#e8bd8f"/><path d="M46 35 V72 M46 72 L34 96 M46 72 L58 96 M46 44 L66 36 M46 48 L30 60" stroke-width="5" fill="none"/><path d="M62 22 H80 L77 42 H65Z" fill="${color}"/><path d="M66 36 L66 30" stroke-width="4" fill="none"/>`,
+    sleep: `<path d="M8 78 H94" stroke-width="5" stroke="${wood}" fill="none"/><path d="M10 78 V66 Q24 56 34 66 V78" fill="#f3e3bd"/><circle cx="24" cy="66" r="9" fill="#e8bd8f"/><path d="M33 70 Q60 60 88 72" stroke-width="6" fill="none" stroke="${color}"/><path d="M52 18 h12 l-12 12 h12 M72 32 h9 l-9 9 h9" fill="none"/><path d="M20 64 Q24 67 28 64" fill="none"/>`,
+    run: `<circle cx="58" cy="20" r="10" fill="#e8bd8f"/><path d="M56 30 L48 62 M48 62 L22 76 M48 62 L68 82 L64 96 M54 40 L30 48 M54 40 L76 50" stroke-width="5" fill="none"/><path d="M4 30 H20 M2 42 H16 M6 54 H18" stroke="${color}" fill="none"/><path d="M2 96 H98" stroke="${wood}" fill="none"/>`,
+    walk: `<circle cx="50" cy="19" r="10" fill="#e8bd8f"/><path d="M50 29 V62 M50 62 L36 94 M50 62 L64 94 M50 38 L36 54 M50 38 L64 52" stroke-width="5" fill="none"/><path d="M2 96 H98" stroke="${wood}" fill="none"/><path d="M70 86 q8 -8 16 0" fill="none" stroke="${color}"/>`,
+    jump: `<circle cx="50" cy="18" r="10" fill="#e8bd8f"/><path d="M50 28 V52 M50 52 L36 66 L42 76 M50 52 L64 66 L58 76 M50 34 L28 20 M50 34 L72 20" stroke-width="5" fill="none"/><path d="M4 94 H96" stroke="${wood}" stroke-width="5" fill="none"/><path d="M24 88 q6 -6 12 0 M64 88 q6 -6 12 0" fill="none" stroke="${color}"/>`,
+    look: `<circle cx="40" cy="26" r="10" fill="#e8bd8f"/><path d="M40 36 V70 M40 70 L28 95 M40 70 L52 95 M40 44 L58 40 M28 20 H46" stroke-width="5" fill="none"/><path d="M70 10 Q78 2 84 10 L92 14 L83 17 Q80 26 70 22 L64 18Z" fill="${color}"/><path d="M52 30 q8 -6 14 -10" stroke-dasharray="4 4" fill="none"/>`,
+    listen: `<circle cx="42" cy="30" r="11" fill="#e8bd8f"/><path d="M42 41 V74 M42 74 L30 96 M42 74 L54 96 M42 50 L58 42 L55 32" stroke-width="5" fill="none"/><path d="M70 12 V34 Q70 42 62 40 Q56 38 61 32 L66 33 V12Z" fill="${color}"/><path d="M70 12 L84 8 V30" fill="none"/><circle cx="80" cy="33" r="5" fill="${color}"/>`,
+    play: `<circle cx="34" cy="24" r="10" fill="#e8bd8f"/><path d="M34 34 V64 M34 64 L24 94 M34 64 L56 74 M34 42 L52 50 M34 42 L16 52" stroke-width="5" fill="none"/><circle cx="72" cy="80" r="14" fill="${color}"/><path d="M62 70 q10 10 20 20 M82 70 q-10 10 -20 20" fill="none" stroke="#f3e3bd"/><path d="M60 52 q10 -8 20 2" stroke-dasharray="4 4" fill="none"/>`,
+    give: `<circle cx="30" cy="26" r="10" fill="#e8bd8f"/><path d="M30 36 V70 M30 70 L20 95 M30 70 L40 95 M30 44 L56 50 M30 48 L54 58" stroke-width="5" fill="none"/><path d="M56 42 H84 V64 H56Z" fill="${color}"/><path d="M70 42 V64 M56 52 H84" stroke="#f3e3bd" fill="none"/><path d="M62 36 q8 -8 8 6 q0 -14 8 -6" fill="none"/>`
+  };
+  if (FIGURES[concept]) return wrap(`${FIGURES[concept]}<path d="M${12 + shape * 4} 99 h${6 + design % 5}" stroke="${color}"/>`);
   const shapes = {
     bed: `<path d="M5 18V92M95 35V92M5 66H95V80H5Z" fill="${wood}"/><path d="M9 35H90V66H9Z" fill="${color}"/><rect x="12" y="37" width="25" height="22" rx="${4 + shape * 3}" fill="#f7edce"/><path d="M43 40V65M62 40V65" stroke="#fff4cc"/>`,
     sofa: `<rect x="8" y="20" width="84" height="50" rx="${5 + shape * 5}" fill="${color}"/><path d="M2 45H18V62H82V45H98V85H2Z" fill="${wood}"/><path d="M12 85V97M87 85V97M50 24V62" fill="none"/>`,
@@ -63,7 +106,7 @@ export function extraObject(concept, design, color) {
   if (!shapes[concept]) throw Error(`Missing artwork for ${concept}`);
   return `<g stroke="#283f46" stroke-width="2.5" stroke-linejoin="round">${shapes[concept]}<path d="M${15 + shape * 4} 93h${8 + design % 7}" stroke="${color}"/></g>`;
 }
-function object(concept, v, color) {
+export function object(concept, v, color) {
   const wood = ['#7c4835','#c59665','#536979','#b45d41','#927c45','#64777e','#8d5b78'][v];
   const common = `stroke="#283f46" stroke-width="2.5" stroke-linejoin="round"`;
   const shapes = {
@@ -147,5 +190,5 @@ export function sceneSVG(scene, { study = false, correct = [] } = {}) {
     const drawing = CONCEPTS.includes(t.concept) ? object(t.concept, design % 7, color) : extraObject(t.concept, design, color);
     return `<g class="scene-target${done ? ' found' : ''}" data-target="${t.id}" role="button" tabindex="0" aria-label="${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept] || t.concept)}`}${done ? ', found' : ''}" transform="translate(${x} ${y})"><title>${study ? esc(t.concept) : `Object ${i+1}: ${esc(DESCRIPTIONS[t.concept] || t.concept)}`}</title><svg width="${w}" height="${h}" viewBox="-8 -8 116 116" overflow="hidden"><g transform="translate(50 50) rotate(${scene.library ? (design % 5 - 2) * 2 : 0}) scale(${scene.library ? .83 + (design % 8) * .022 : 1}) translate(-50 -50)">${drawing}</g></svg><rect class="hitbox" width="${w}" height="${h}" rx="7" fill="transparent" stroke="${done ? '#147c4b' : 'transparent'}" stroke-width="5"/></g>`;
   }).join('');
-  return `<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="${esc(scene.title)}: twelve interactive objects. Use the accessible object list below for larger controls."><rect width="1000" height="600" fill="${scene.sky}"/><rect y="235" width="1000" height="365" fill="${scene.ground}"/>${backdrops[v]}${texture}<path d="M0 245 H1000 M0 410 L1000 440" stroke="${scene.accent}" stroke-width="5" opacity=".4"/>${decor}<path d="M0 15 Q500 ${v%2 ? 175 : 80} 1000 15" fill="none" stroke="${scene.accent}" stroke-width="3"/>${Array.from({length:12},(_,i)=>`<path d="M${i*89} ${30+Math.sin(i/4)*24} l25 0 l-12 30Z" fill="${i%2 ? '#e6ab60' : '#d48391'}"/>`).join('')}<g opacity=".65"><ellipse cx="520" cy="561" rx="90" ry="12" fill="#5c6e5c"/><path d="M890 290 H976 V390 H890Z" fill="#a87e60"/><path d="M900 298 H965 M900 322 H965 M900 346 H965 M900 370 H965" stroke="#d7bb8a" stroke-width="6"/><path d="M15 365 L92 340 L98 430 L20 447Z" fill="#d9b786"/><path d="M28 378 l46 -15 M30 397 l47 -15" stroke="#7d7765" stroke-width="5"/></g>${props}${targets}</svg>`;
+  return `<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg" overflow="hidden" role="group" aria-label="${esc(scene.title)}: twelve interactive concepts. Focus a concept and press Enter or Space to select it."><rect width="1000" height="600" fill="${scene.sky}"/><rect y="235" width="1000" height="365" fill="${scene.ground}"/>${backdrops[v]}${texture}<path d="M0 245 H1000 M0 410 L1000 440" stroke="${scene.accent}" stroke-width="5" opacity=".4"/>${decor}<path d="M0 15 Q500 ${v%2 ? 175 : 80} 1000 15" fill="none" stroke="${scene.accent}" stroke-width="3"/>${Array.from({length:12},(_,i)=>`<path d="M${i*89} ${30+Math.sin(i/4)*24} l25 0 l-12 30Z" fill="${i%2 ? '#e6ab60' : '#d48391'}"/>`).join('')}<g opacity=".65"><ellipse cx="520" cy="561" rx="90" ry="12" fill="#5c6e5c"/><path d="M890 290 H976 V390 H890Z" fill="#a87e60"/><path d="M900 298 H965 M900 322 H965 M900 346 H965 M900 370 H965" stroke="#d7bb8a" stroke-width="6"/><path d="M15 365 L92 340 L98 430 L20 447Z" fill="#d9b786"/><path d="M28 378 l46 -15 M30 397 l47 -15" stroke="#7d7765" stroke-width="5"/></g>${props}${targets}</svg>`;
 }

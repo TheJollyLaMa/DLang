@@ -9,7 +9,7 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
 - English, Spanish, French, Hindi (Devanagari) and Mandarin Simplified with pinyin.
   All vocabulary/aliases are seed content, **not fluent-speaker reviewed**.
   Pinyin is a study aid; scored Mandarin answers use Chinese characters.
-- **Free practice:** three flexible two-minute sessions per local day, 36 seed
+- **Free practice:** three flexible two-minute sessions per local day, 72 seed
   concepts and 1,095 reproducible original SVG compositions. Each recipe day has
   three different 12-object sets; due concepts prioritize order within that set.
   Layout/order/colors and 32 object design combinations vary. No identical object
@@ -35,6 +35,14 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
   from the gitignored `.env`; it paces requests over several seconds each and
   restores your active course. The imported library is saved only in your
   browser; never uploaded, published or graded.
+- Family word map and curriculum: 72 concepts in six levels ordered like early
+  childhood acquisition (home nouns, wider nouns, numbers, feelings, colors,
+  first verbs) across 13 studied languages. Unmarked entries are **machine seed
+  content, fluent-speaker review pending** — never fluent or verified; Diné
+  bizaad seeds are limited to well-attested nouns, numbers and colors. The
+  scene library's concept pool widens with the same levels. ● evidence and the
+  Spanish anchor search come only from the locally imported word library, and
+  ▶ plays clearly labeled device speech synthesis.
 - Touch objects/words to hear reviewed community recordings in rotation, or
   clearly labeled device speech when a matching voice is installed. Microphone
   starts only on Record. Local IndexedDB drafts become public CC BY 4.0 IPFS
@@ -55,9 +63,38 @@ multilingual study. DLang is not affiliated with any commercial lesson platform.
 not financial evidence. The [empty trial escrow](docs/Trial-Contract.md) is
 deployed on Base and exactly source-matched by Sourcify. No funded round was opened.
 Trusted score/operator review and real transaction-flow acceptance remain launch gates. No Supporter
-token has been minted; no token purchase link is invented. LiveKit conversation
-and calibrated speech assessment remain future work. The free practice schedule
+token has been minted; no token purchase link is invented. Private LiveKit
+adapters are implemented but need operator configuration and a two-device audio
+trial; calibrated speech assessment remains future work. The free practice schedule
 and self-reviews do not change weekly qualification or authorize settlement.
+
+## Scene stewards
+
+Scene narration supports local recording, segmented call-and-response and
+three assigned language-qualified reviewers: two approvals admit that exact
+version to local rotation. Local qualifications and votes are prototype records,
+not financial authorization. Qualified plays accumulate exact provisional units,
+including tiny balances; usefulness votes are separate from correctness reviews.
+Ommm settlement and DNFT claims remain disabled until assets, funding and
+authorized signers are configured. The new narration/reward contract is tested
+locally, not deployed.
+
+Scene-grounded typed conversation works without an account or a transcript store.
+Private audio is opt-in, starts listen-only and stops during scored attempts.
+The optional service exports `createConversationTransport`,
+`createConversationService` and `handleConversationRequest` from
+`services/conversation.cjs`. An operator supplies the LiveKit server SDK and
+backend-only credentials, exact allowed origins, admitted wallets and quotas;
+pass the service, origins and exact WSS origin to `createServer` as
+`conversationService`, `conversationOrigins` and `conversationLivekitOrigin`.
+The default server does not configure this service.
+
+For private audio, load a licensed same-origin LiveKit client SDK exposing
+`window.LivekitClient` and set `window.DLangConversationConfig` with `endpoint`
+(the service URL ending `/api/dlang/conversation`) and `livekitOrigin`
+(the exact `wss://` origin). Use one service instance per LiveKit project;
+allow that exact WSS origin in the hosting CSP. Pages alone cannot run the
+backend. Without configuration the UI stays in typed practice.
 
 ## Run and test
 
@@ -171,12 +208,26 @@ DecentEscrow's Apache-2.0 PaymentAsset; trial accounting is new and separately
 tested. No speculative shared framework is extracted.
 
 Receiving tests cover language packs, timer/weekly boundaries and DST, local
-persistence, accessibility, ENS/profile artwork, three-a-day practice including
-local midnight and cross-tab recovery, actual
+persistence, accessibility, ENS/profile artwork, three-a-day practice, actual
 statistics, device speech, local microphone drafts, public-backup verification,
 provider failures, native-voice approval/rotation, About/tutorial and wallet refusal.
 Contract tests cover refunds/carry/settlement separately; see the contract guide
 for trust assumptions and remaining launch gates.
+
+For native narration, adapted exact-unit and replay-protection patterns from
+Busking's `js/radio-payroll.mjs` and `discord-bot/payment-ledger.js` at
+`ab7c1dd4a25479d0b8351e42b17b8fac6c7c0221`, ArtFi's
+`contracts/ArtFiSettlementRouter.sol` at
+`4c402808ff9c9f78543a9416928fc05678181f8c`, and Voyager's
+`VoyagerRewards.sol`/`VoyagerStamps.sol` at
+`d81a611bb1bff6585bba681ee65482e424aa53ec`, without importing donor deployments.
+Conversation adapts Busking's `js/rehearsal.mjs` and
+`discord-bot/rehearsal.js` at `ac8a9cc`; its hosted identity and persistence
+are not reused. DLang-specific receiving tests cover consent, expiry, wallet
+changes, weekly isolation, version-bound reviews, exact accrual and signed-claim
+replay refusal. Different assets, funding authority and native-reviewer
+qualification still require operator setup. DVERT and subscription funding
+remain separate follow-up work.
 
 Code: Apache-2.0. Original creative material: CC BY 4.0 unless otherwise marked.
 Preserve [NOTICE](NOTICE), donor notices and vendor licenses.

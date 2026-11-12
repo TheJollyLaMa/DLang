@@ -67,3 +67,50 @@ for (const row of expanded) {
     ...(tag === 'zh-Hans' ? { reading: row[6], readingTag: 'zh-Latn-pinyin', answerPolicy: 'Chinese characters only; pinyin study-only.' } : {})
   };
 }
+// Family-curriculum growth: numbers, feelings, colors and first verbs.
+// Machine-seeded labels; not yet reviewed by fluent speakers.
+const grown = [
+  ['one', 'one', 'uno', 'un', 'एक', '一', 'yī'],
+  ['two', 'two', 'dos', 'deux', 'दो', '二', 'èr'],
+  ['three', 'three', 'tres', 'trois', 'तीन', '三', 'sān'],
+  ['four', 'four', 'cuatro', 'quatre', 'चार', '四', 'sì'],
+  ['five', 'five', 'cinco', 'cinq', 'पाँच', '五', 'wǔ'],
+  ['six', 'six', 'seis', 'six', 'छह', '六', 'liù'],
+  ['seven', 'seven', 'siete', 'sept', 'सात', '七', 'qī'],
+  ['eight', 'eight', 'ocho', 'huit', 'आठ', '八', 'bā'],
+  ['nine', 'nine', 'nueve', 'neuf', 'नौ', '九', 'jiǔ'],
+  ['ten', 'ten', 'diez', 'dix', 'दस', '十', 'shí'],
+  ['happy', 'happy', 'feliz', 'heureux', 'खुश', '开心', 'kāixīn'],
+  ['sad', 'sad', 'triste', 'triste', 'उदास', '伤心', 'shāngxīn'],
+  ['angry', 'angry', 'enojado', 'fâché', 'गुस्सा', '生气', 'shēngqì'],
+  ['scared', 'scared', 'asustado', 'effrayé', 'डरा हुआ', '害怕', 'hàipà'],
+  ['tired', 'tired', 'cansado', 'fatigué', 'थका हुआ', '累', 'lèi'],
+  ['surprised', 'surprised', 'sorprendido', 'surpris', 'हैरान', '惊讶', 'jīngyà'],
+  ['calm', 'calm', 'tranquilo', 'calme', 'शांत', '平静', 'píngjìng'],
+  ['proud', 'proud', 'orgulloso', 'fier', 'गर्वित', '自豪', 'zìháo'],
+  ['red', 'red', 'rojo', 'rouge', 'लाल', '红色', 'hóngsè'],
+  ['blue', 'blue', 'azul', 'bleu', 'नीला', '蓝色', 'lánsè'],
+  ['yellow', 'yellow', 'amarillo', 'jaune', 'पीला', '黄色', 'huángsè'],
+  ['green', 'green', 'verde', 'vert', 'हरा', '绿色', 'lǜsè'],
+  ['black', 'black', 'negro', 'noir', 'काला', '黑色', 'hēisè'],
+  ['white', 'white', 'blanco', 'blanc', 'सफ़ेद', '白色', 'báisè'],
+  ['orange', 'orange', 'naranja', 'orange', 'नारंगी', '橙色', 'chéngsè'],
+  ['purple', 'purple', 'morado', 'violet', 'बैंगनी', '紫色', 'zǐsè'],
+  ['eat', 'eat', 'comer', 'manger', 'खाना', '吃', 'chī'],
+  ['drink', 'drink', 'beber', 'boire', 'पीना', '喝', 'hē'],
+  ['sleep', 'sleep', 'dormir', 'dormir', 'सोना', '睡觉', 'shuìjiào'],
+  ['run', 'run', 'correr', 'courir', 'दौड़ना', '跑', 'pǎo'],
+  ['walk', 'walk', 'caminar', 'marcher', 'चलना', '走', 'zǒu'],
+  ['jump', 'jump', 'saltar', 'sauter', 'कूदना', '跳', 'tiào'],
+  ['look', 'look', 'mirar', 'regarder', 'देखना', '看', 'kàn'],
+  ['listen', 'listen', 'escuchar', 'écouter', 'सुनना', '听', 'tīng'],
+  ['play', 'play', 'jugar', 'jouer', 'खेलना', '玩', 'wán'],
+  ['give', 'give', 'dar', 'donner', 'देना', '给', 'gěi']
+];
+const grownAliases = { angry: { es: ['enfadado'] }, happy: { es: ['contento'], fr: ['content'] }, walk: { es: ['andar'] }, purple: { es: ['púrpura', 'violeta'] }, run: { fr: ['sprinter'] } };
+for (const row of grown) {
+  for (const [index, tag] of LANGUAGE_TAGS.entries()) PACKS[tag][row[0]] = {
+    label: row[index + 1], aliases: grownAliases[row[0]]?.[tag] || [], review: 'machine seed — fluent-speaker review pending',
+    ...(tag === 'zh-Hans' ? { reading: row[6], readingTag: 'zh-Latn-pinyin', answerPolicy: 'Chinese characters only; pinyin study-only.' } : {})
+  };
+}
