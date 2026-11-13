@@ -3,7 +3,7 @@ export function mountLanding() {
   const definitions = [
     ['practice', 'Daily discoveries', ['#practice'], 'left'],
     ['library', 'Words & worlds', ['#scene-library', '#family-wordmap'], 'left'],
-    ['voices', 'Listen. Answer. Tell a story.', ['#narration-root', '#conversation-root'], 'right'],
+    ['voices', 'Listen. Answer. Tell a story.', ['#narration-root', '#conversation-root', '#sensory-root', '#voice-seeding-root'], 'right'],
     ['week', 'Our observation week', ['.notice', '.tabs', '.round', '#study', '#week', '.economics'], 'right']
   ];
   const panels = new Map();

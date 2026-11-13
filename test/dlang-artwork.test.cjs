@@ -75,6 +75,10 @@ test('monthly artwork import gate accepts exactly twelve bounded, versioned and 
   const {manifest, readAsset} = fixture();
   assert.deepEqual(validateBatch(manifest, {readAsset, concepts: new Set(['chair', 'cat', 'dog'])}),
     {batchId: '2026-11-review', month: '2026-11', assets: 12, sceneVersion: 2});
+  manifest.provider.accountIntegration = 'operator-api';
+  assert.equal(validateBatch(manifest, {readAsset, concepts: new Set(['chair', 'cat', 'dog'])}).assets, 12);
+  manifest.provider.automation = 'enabled';
+  assert.throws(() => validateBatch(manifest, {readAsset}), /automation/);
 });
 
 test('artwork gate rejects missing human review, unsafe paths, unapproved spend and broken images', async () => {

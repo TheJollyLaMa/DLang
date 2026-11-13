@@ -10,6 +10,7 @@ export function createConversationLiveKit({ sdk, audio, livekitOrigin, onStatus 
   let room, local, remote, timer, generation = 0, disposed = false, busy = false;
   const status = text => { if (!disposed) onStatus(text); };
   function stop(message = 'Left private audio.') {
+    events?.dispatchEvent?.(new CustomEvent('dlang:private-audio', { detail: { active: false } }));
     generation++; busy = false; clearTimer(timer); timer = null;
     const previous = room; room = null;
     const track = local; local = null;
@@ -36,6 +37,7 @@ export function createConversationLiveKit({ sdk, audio, livekitOrigin, onStatus 
         grant.participantCap !== 2 || !Number.isSafeInteger(expiresAt) ||
         expiresAt <= now() || expiresAt > now() + 15 * 60_000) throw Error('Invalid private audio grant.');
     busy = true;
+    events?.dispatchEvent?.(new CustomEvent('dlang:private-audio', { detail: { active: true } }));
     const current = ++generation;
     const valid = () => current === generation && !disposed && expiresAt > now();
     let next;

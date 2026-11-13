@@ -71,6 +71,8 @@
   <button id="wordmap-open">Open the word map</button></section>
   <section id="narration-root" class="card" aria-label="Native scene narration"></section>
   <section id="conversation-root" class="card" aria-label="Scene conversations"></section>
+  <section id="sensory-root" class="card" aria-label="Reusable sensory library"></section>
+  <section id="voice-seeding-root" class="card" aria-label="Contributor AI voice consent"></section>
   <section class="round card" aria-labelledby="round-heading">
     <div><p class="eyebrow">THE FIRST WEEK · LEVEL 1</p><h2 id="round-heading">Upcoming round</h2><p id="schedule"></p><p id="countdown"></p></div>
     <div><p id="wallet-state">Wallet optional for study · not connected</p><button id="check-pilot">Check connected contributor eligibility</button><p id="pilot-status">Pilot enrollment requires an explicit check against the reviewed DLang pilot snapshot. No automatic authorization or live registry synchronization.</p><label>Weekly answer language <select id="language" aria-label="Weekly answer language"></select></label><button id="enroll">Enroll locally · $0 charged</button><p id="enrollment"></p><button disabled>Real $1 buy-in unavailable</button></div>
@@ -83,6 +85,7 @@
     <button id="study-zoom" aria-pressed="false">Magnify scene · scroll to explore</button>
     <div id="study-scene" class="scene" tabindex="0" aria-label="Study scene viewport"></div>
     <div id="study-labels" class="labels" aria-live="polite"></div>
+    <button id="study-sound" disabled>Choose an object with a sound candidate</button><p class="quiet">Optional AI-generated sound preview, not pronunciation or a reviewed lesson. Stops spoken audio before playing.</p>
     <details><summary>Accessible object list / larger touch controls</summary><div id="study-objects" class="object-list"></div></details>
     <p id="exemplar-note"></p><button id="recognition">Try a fresh exemplar</button><p id="recognition-status" role="status"></p>
   </section>

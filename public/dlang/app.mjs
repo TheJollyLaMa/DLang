@@ -14,6 +14,8 @@ import { mountConversation } from './conversation.mjs';
 import { mountNarration } from './narration.mjs';
 import { mountLanding } from './landing.mjs';
 import { mountOmmm } from './ommm.mjs';
+import { mountSensory } from './sensory.mjs';
+import { mountVoiceSeeding } from './voice-seeding.mjs';
 const landing = mountLanding();
 const $ = id => document.getElementById(id);
 const languageName = tag => LANGUAGE_NAMES[tag] || tag;
@@ -35,7 +37,7 @@ let storage;
 try { storage = localStorage; } catch { storage = { getItem() { throw Error('Browser storage unavailable.'); }, setItem() { throw Error('Browser storage unavailable.'); } }; }
 const engine = new Round({ config, scenes: SCENES, packs: PACKS, storage });
 let walletAddress = '', eligibility = null, checking = false, selectedTarget = null, studyTarget = 'chair', recognition = null, lastAttempt = '', lastFinished = '';
-let narration = null, conversation = null, sharedScene = null, scoredPracticeBlocked = false;
+let narration = null, conversation = null, sensory = null, sharedScene = null, scoredPracticeBlocked = false;
 function getSceneContext() {
   if (scoredPracticeBlocked) return null;
   const scene = sharedScene?.scene || SCENES[Number($('scene-select').value) || 0];
@@ -51,12 +53,13 @@ function getSceneContext() {
 function setScoredPracticeBlocked(blocked) {
   if (scoredPracticeBlocked === blocked) return;
   scoredPracticeBlocked = blocked;
-  for (const id of ['narration-root', 'conversation-root']) {
+  for (const id of ['narration-root', 'conversation-root', 'sensory-root', 'voice-seeding-root']) {
     $(id).hidden = blocked;
     if (blocked) $(id).querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
   }
   narration?.setBlocked(blocked || landing.active !== 'voices');
   conversation?.setBlocked(blocked || landing.active !== 'voices');
+  sensory?.refresh();
 }
 const dialogFocus = new WeakMap();
 function openDialog(id) {
@@ -124,6 +127,15 @@ $('history-open').onclick = () => { renderHistory(); openDialog('history-dialog'
 $('admin-config').textContent = JSON.stringify(config, null, 2);
 mountStorage({ ipfs, storage, openDialog });
 const audio = mountAudio({ ipfs, openDialog });
+sensory = await mountSensory({ root: $('sensory-root'), audio, report,
+  getBlocked: () => scoredPracticeBlocked || !landing.active });
+mountVoiceSeeding({ root: $('voice-seeding-root'), storage, report, getBlocked: () => scoredPracticeBlocked,
+  getWallet: async () => {
+    const snapshot = DecentHead.getWallet().snapshot();
+    if (!snapshot.connected) throw Error('Connect your contributor wallet in the shared header first.');
+    return { address: snapshot.address, signer: await snapshot.provider.getSigner(snapshot.address) };
+  } });
+$('study-sound').onclick = () => { if (!scoredPracticeBlocked) sensory.previewConcept(studyTarget); };
 const practice = mountPractice({ storage, audio, report });
 sharedScene = practice.getSceneContext();
 narration = mountNarration({
@@ -202,6 +214,7 @@ for (const [i, scene] of SCENES.entries()) {
 }
 function bindObjects(container, scene, study) {
   container.querySelectorAll('[data-target]').forEach(node => {
+    node.dataset.sensoryConcept = scene.targets.find(target => target.id === node.dataset.target).concept;
     const choose = () => {
       const target = scene.targets.find(t => t.id === node.dataset.target);
       if (study) {
@@ -236,6 +249,8 @@ function objectList(element, scene, study, correct = []) {
   bindObjects(element, scene, study);
 }
 function renderLabels() {
+  $('study-sound').disabled = scoredPracticeBlocked || !sensory.hasConcept(studyTarget);
+  $('study-sound').textContent = sensory.hasConcept(studyTarget) ? `Preview ${studyTarget} sound candidate` : 'No sound candidate for this object yet';
   const languages = [...$('study-languages').querySelectorAll('input:checked')].map(node => node.value);
   $('study-labels').replaceChildren(...studyLabels(studyTarget, languages, PACKS).map(({ tag, label }) => {
     const box = document.createElement('div'), title = document.createElement('span'), word = document.createElement('strong');

@@ -135,3 +135,24 @@ decent-header{display:block;overflow-x:clip}
 @media (prefers-reduced-motion: reduce) {
   #ommm-profile.gem-received { animation: none; }
 }
+@keyframes sensory-sway {
+  0%, 100% { transform: rotate(-1deg); }
+  50% { transform: rotate(1deg); }
+}
+@keyframes sensory-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+html[data-sensory-motion="true"] :is([data-sensory-concept="tree"], [data-sensory-concept="flower"]) > svg {
+  transform-origin: 50% 100%;
+  animation: sensory-sway 5s ease-in-out infinite;
+}
+html[data-sensory-motion="true"] :is([data-sensory-concept="cat"], [data-sensory-concept="bird"]) > svg {
+  animation: sensory-breathe 4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-sensory-motion="true"] [data-sensory-concept] > svg { animation: none; }
+}
+#sensory-root [data-sensory-gallery] { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 1rem; }
+#sensory-root figure { margin: 0; }
+#sensory-root img { height: auto; }

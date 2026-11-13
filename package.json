@@ -10,9 +10,13 @@
     "test": "node --test test/*.test.cjs",
     "build:conversation-client": "node scripts/build-conversation-client.cjs",
     "build:library": "node scripts/build-library.mjs",
+    "sensory:sounds": "node --env-file=.env.local scripts/sensory-batch.mjs sounds",
+    "sensory:images": "node --env-file=.env.services scripts/sensory-batch.mjs images",
+    "voice:seed": "node --env-file=.env.local scripts/voice-seed.mjs",
     "test:contracts": "npm test --prefix contract-tools"
   },
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "2.78.0",
     "ethers": "6.17.0",
     "livekit-client": "2.24.0",
     "livekit-server-sdk": "2.19.3"

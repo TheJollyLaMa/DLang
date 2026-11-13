@@ -120,8 +120,8 @@ export function validateBatch(manifest, { readAsset, concepts = CONCEPTS } = {})
   assert(manifest.status === 'approved', 'Only a fully approved monthly batch can be imported.');
   assert(manifest.sceneVersion === SCENE_VERSION, `sceneVersion must match the current ${SCENE_VERSION} scene version.`);
   assert(isRecord(manifest.provider) && manifest.provider.name === 'Runway'
-    && manifest.provider.accountIntegration === 'unavailable'
-    && manifest.provider.automation === 'disabled', 'Runway account integration and generation automation must remain explicitly unavailable/disabled.');
+    && ['unavailable', 'operator-api'].includes(manifest.provider.accountIntegration)
+    && manifest.provider.automation === 'disabled', 'Runway source must be manual or operator-API with generation automation disabled.');
   assert(isRecord(manifest.budget) && nonempty(manifest.budget.approvedBy)
     && validDate(manifest.budget.approvedAt) && Number.isFinite(manifest.budget.creditCap)
     && manifest.budget.creditCap > 0 && Number.isFinite(manifest.budget.creditsUsed)
@@ -216,7 +216,9 @@ function updateCatalog(manifest) {
   return {
     ...catalog,
     status: 'available',
-    provider: { name: 'Runway', accountIntegration: 'unavailable', generation: 'manual-import-only', automation: 'disabled' },
+    provider: { name: 'Runway',
+      accountIntegration: manifest.provider.accountIntegration === 'operator-api' || catalog.provider?.accountIntegration === 'operator-api' ? 'operator-api' : 'unavailable',
+      generation: 'manual-import-only', automation: 'disabled' },
     batches: [...catalog.batches, {
       batchId: manifest.batchId, month: manifest.month, status: 'approved',
       sceneVersion: manifest.sceneVersion, budget: manifest.budget, assets

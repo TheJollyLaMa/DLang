@@ -1,0 +1,599 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "2026-11-sounds-cat-v1",
+      "kind": "sound",
+      "concept": "cat",
+      "label": "cat sound cue",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-sounds-cat-v1.mp3",
+      "bytes": 33061,
+      "sha256": "b12d29466902e8c1c03101f1d1acad5ec5b7b69de6e7b7b0024bc48da7bcb105",
+      "seconds": 2.037551,
+      "source": {
+        "provider": "ElevenLabs",
+        "model": "eleven_text_to_sound_v3",
+        "prompt": "A single friendly domestic cat meowing softly, isolated clean recording, no speech, no music.",
+        "generatedAt": "2026-11-13T00:58:37.633Z",
+        "sha256": "b12d29466902e8c1c03101f1d1acad5ec5b7b69de6e7b7b0024bc48da7bcb105",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 5000,
+        "reportedCreditsUsed": 120,
+        "usageObservedAt": "2026-11-13T01:12:56.819Z",
+        "finalBillingVerified": false
+      }
+    },
+    {
+      "id": "2026-11-sounds-bird-v1",
+      "kind": "sound",
+      "concept": "bird",
+      "label": "bird sound cue",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-sounds-bird-v1.mp3",
+      "bytes": 33061,
+      "sha256": "4a1e75ff407b2e8fc9158bbe9eb16726981511e89e6b65ae86f3b2ccfe36bc95",
+      "seconds": 2.037551,
+      "source": {
+        "provider": "ElevenLabs",
+        "model": "eleven_text_to_sound_v3",
+        "prompt": "A small songbird chirping gently twice, isolated clean nature sound, no speech, no music.",
+        "generatedAt": "2026-11-13T00:58:40.100Z",
+        "sha256": "4a1e75ff407b2e8fc9158bbe9eb16726981511e89e6b65ae86f3b2ccfe36bc95",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 5000,
+        "reportedCreditsUsed": 120,
+        "usageObservedAt": "2026-11-13T01:12:56.819Z",
+        "finalBillingVerified": false
+      }
+    },
+    {
+      "id": "2026-11-sounds-wind-v1",
+      "kind": "sound",
+      "concept": "wind",
+      "label": "wind sound cue",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-sounds-wind-v1.mp3",
+      "bytes": 33061,
+      "sha256": "1b284f72f2441be4b77ed3610e249cb7f0a26271e424467bd33417457e54330d",
+      "seconds": 2.037551,
+      "source": {
+        "provider": "ElevenLabs",
+        "model": "eleven_text_to_sound_v3",
+        "prompt": "Gentle wind rustling leaves, quiet outdoor breeze, no howling, no speech, no music.",
+        "generatedAt": "2026-11-13T00:58:42.694Z",
+        "sha256": "1b284f72f2441be4b77ed3610e249cb7f0a26271e424467bd33417457e54330d",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 5000,
+        "reportedCreditsUsed": 120,
+        "usageObservedAt": "2026-11-13T01:12:56.819Z",
+        "finalBillingVerified": false
+      }
+    },
+    {
+      "id": "2026-11-sounds-rain-v1",
+      "kind": "sound",
+      "concept": "rain",
+      "label": "rain sound cue",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-sounds-rain-v1.mp3",
+      "bytes": 33061,
+      "sha256": "60b892548a72e62eb42d44425bf9e5d14a353ac8898fd0630a51f84995df29a9",
+      "seconds": 2.037551,
+      "source": {
+        "provider": "ElevenLabs",
+        "model": "eleven_text_to_sound_v3",
+        "prompt": "Soft steady rain pattering on a window, calm and quiet, no thunder, no speech, no music.",
+        "generatedAt": "2026-11-13T00:58:45.152Z",
+        "sha256": "60b892548a72e62eb42d44425bf9e5d14a353ac8898fd0630a51f84995df29a9",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 5000,
+        "reportedCreditsUsed": 120,
+        "usageObservedAt": "2026-11-13T01:12:56.819Z",
+        "finalBillingVerified": false
+      }
+    },
+    {
+      "id": "2026-11-sounds-bell-v1",
+      "kind": "sound",
+      "concept": "bell",
+      "label": "bell sound cue",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-sounds-bell-v1.mp3",
+      "bytes": 33061,
+      "sha256": "7c7916ecab5f26c7c6783113199a9e1622ff8bfc94ca2372cbd6c3b7218e1e56",
+      "seconds": 2.037551,
+      "source": {
+        "provider": "ElevenLabs",
+        "model": "eleven_text_to_sound_v3",
+        "prompt": "One soft small bicycle bell ringing clearly and fading, no startling impact, no speech, no music.",
+        "generatedAt": "2026-11-13T00:58:47.422Z",
+        "sha256": "7c7916ecab5f26c7c6783113199a9e1622ff8bfc94ca2372cbd6c3b7218e1e56",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 5000,
+        "reportedCreditsUsed": 120,
+        "usageObservedAt": "2026-11-13T01:12:56.819Z",
+        "finalBillingVerified": false
+      }
+    },
+    {
+      "id": "2026-11-sounds-surprise-v1",
+      "kind": "sound",
+      "concept": "surprise",
+      "label": "surprise sound cue",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-sounds-surprise-v1.mp3",
+      "bytes": 33061,
+      "sha256": "70dc4d81207a69b4d687b2e36851a43dbf7f609990b3a93cac09a3c4ce3df9a6",
+      "seconds": 2.037551,
+      "source": {
+        "provider": "ElevenLabs",
+        "model": "eleven_text_to_sound_v3",
+        "prompt": "A gentle playful rising chime expressing curiosity and pleasant surprise, no human voice, no speech, no music.",
+        "generatedAt": "2026-11-13T00:58:49.765Z",
+        "sha256": "70dc4d81207a69b4d687b2e36851a43dbf7f609990b3a93cac09a3c4ce3df9a6",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 5000,
+        "reportedCreditsUsed": 120,
+        "usageObservedAt": "2026-11-13T01:12:56.819Z",
+        "finalBillingVerified": false
+      }
+    },
+    {
+      "id": "2026-11-images-cat-v1",
+      "kind": "image",
+      "concept": "cat",
+      "label": "cat visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-cat-v1.png",
+      "bytes": 1207561,
+      "sha256": "8ee034c5ed1deddc35b68ec55305667d437469b49c404016944023d19a7ee628",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-cat-v1-mobile.png",
+        "bytes": 343325,
+        "sha256": "c2abafa9a42c08fa47f8326d28bbc3ae0030cbab4bb4a61a7639a918eeb449a6"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable cat, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic natural photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T00:58:36.453Z",
+        "taskId": "422cd7b7-0ad4-4af1-a945-de480454655e",
+        "sha256": "53976998128bb93d03420b060afe81a3509a1f142d8210c43f4d38a8d2ec4305",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-cat-v1-preview.webp",
+        "bytes": 6524,
+        "sha256": "a4a64cfe851c190d4bd39e7e68ab432e7ea21eac99c972c5a11f92ca5d2509ce"
+      }
+    },
+    {
+      "id": "2026-11-images-bird-v1",
+      "kind": "image",
+      "concept": "bird",
+      "label": "bird visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-bird-v1.png",
+      "bytes": 898176,
+      "sha256": "66c3a9cd213672abfc0fa91b59783fc53afe9038428dafee2a8217f9364e4ab3",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-bird-v1-mobile.png",
+        "bytes": 249075,
+        "sha256": "7ea178cb973849277f913c93ef712165beef3d361072c61a791e927e4e7cfff8"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable bird, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic natural photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T00:59:03.364Z",
+        "taskId": "25a971ae-a535-4485-a979-4e873853729b",
+        "sha256": "d96610aae90ba09c6f561540f37adc8ec47070d2b0fd92389d7f2f42902d7782",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-bird-v1-preview.webp",
+        "bytes": 2882,
+        "sha256": "77689f785f33fa14ec3dead54fbe39e9c3953fff34797464087856d237d39a8d"
+      }
+    },
+    {
+      "id": "2026-11-images-tree-v1",
+      "kind": "image",
+      "concept": "tree",
+      "label": "tree visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-tree-v1.png",
+      "bytes": 918052,
+      "sha256": "c4003afbae15ffc2a0985ba79eb17809aaedc74d0b5ebb27d50c8325fae33623",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-tree-v1-mobile.png",
+        "bytes": 245289,
+        "sha256": "e179c6dd677f70225a9c8f7eece6f79378d619e256af2b64ce2fdcd5bb2ba3c1"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable tree, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic natural photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T00:59:30.077Z",
+        "taskId": "31e1bdff-21d7-437f-a092-bb0a9b38ba6a",
+        "sha256": "cc68c0b7a22d792d6cdf5a64ab12ab372e53d0b4ac33d51e78f1e3aa05c73896",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-tree-v1-preview.webp",
+        "bytes": 7578,
+        "sha256": "5825eea2a37146a3246a2d616513a4922c888efb1686be42d36a637627766c00"
+      }
+    },
+    {
+      "id": "2026-11-images-flower-v1",
+      "kind": "image",
+      "concept": "flower",
+      "label": "flower visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-flower-v1.png",
+      "bytes": 850276,
+      "sha256": "d36dc8eddaa1c32b2bd98b1ceb53cf668383cec79a8431ee8bddb36931d1a69f",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-flower-v1-mobile.png",
+        "bytes": 243269,
+        "sha256": "492627ef7791c4f82f0c51a6f862b9919073eaee143a7c8117c3cf27a31767dd"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable flower, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic natural photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T00:59:52.153Z",
+        "taskId": "b744401a-d5e9-49c0-93c6-242c489e6f1a",
+        "sha256": "f5498e027a284ea0736faed938929c0d29833bd3a16733fd321203fff654aa2c",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-flower-v1-preview.webp",
+        "bytes": 2512,
+        "sha256": "cf142f2130b70488d4147f543703cf42fbcb01ea17df603eb083522a0c53b1fb"
+      }
+    },
+    {
+      "id": "2026-11-images-book-v1",
+      "kind": "image",
+      "concept": "book",
+      "label": "book visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-book-v1.png",
+      "bytes": 655229,
+      "sha256": "4460db91507c7ab87d72c363c92b694252d34d39db6b9a49d4f5c90cfa3fc119",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-book-v1-mobile.png",
+        "bytes": 166013,
+        "sha256": "2eeed348cf17f7c3a31497228f25baa145abe675349c2afaa92eaa8f286fc697"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable book, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:00:19.776Z",
+        "taskId": "c39ea0cb-8a10-4315-a39e-57a849788d18",
+        "sha256": "9c451079151749751572a82564e3654a21f002a9f148e1aea063301af347a955",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-book-v1-preview.webp",
+        "bytes": 1072,
+        "sha256": "45f121f6d70e930e6688c7cf4b9a9b22e042ce4b8820e548cf6fd806cfd841e6"
+      }
+    },
+    {
+      "id": "2026-11-images-chair-v1",
+      "kind": "image",
+      "concept": "chair",
+      "label": "chair visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-chair-v1.png",
+      "bytes": 789553,
+      "sha256": "a6397747b5de42be6012769ac31d3d2bdce7ff0da0aeb89e2918f04255e963b9",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-chair-v1-mobile.png",
+        "bytes": 250182,
+        "sha256": "dfbee094ccce9cef490dd727042779f3f7e2aebc56f335b2da37c4b06fa9d875"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable chair, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:02:46.215Z",
+        "taskId": "81d3b8ca-ad10-4ce8-8572-5e11ebb08ea3",
+        "sha256": "565bda9160bb6fcd80feadea332e660d3955b8d3920d203e75e7b9eef72c61c0",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-chair-v1-preview.webp",
+        "bytes": 2748,
+        "sha256": "995aa4911ecb90492bbc9b6c2f9a708b08e391dc318d103a2cc97d271554e822"
+      }
+    },
+    {
+      "id": "2026-11-images-table-v1",
+      "kind": "image",
+      "concept": "table",
+      "label": "table visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-table-v1.png",
+      "bytes": 597236,
+      "sha256": "19b47677624e4f2da7896446181b6742cd8192d53f94938c406018dc57873d7b",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-table-v1-mobile.png",
+        "bytes": 190097,
+        "sha256": "734866d804426cb22f261ace700e2eeb7fc5492a265488234c913d20e74d4d2e"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable table, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:03:07.864Z",
+        "taskId": "d094caf4-83df-4e8f-96ac-4963a704b545",
+        "sha256": "5228314e1ed225756a22c4cb80aec73b2cd1254a8d858dbf342a9da3c2f77583",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-table-v1-preview.webp",
+        "bytes": 1824,
+        "sha256": "9466dae0eb66f4272e9af3d1c12f357bd5868dd8ec5f1e6191353466a595a10c"
+      }
+    },
+    {
+      "id": "2026-11-images-cup-v1",
+      "kind": "image",
+      "concept": "cup",
+      "label": "cup visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-cup-v1.png",
+      "bytes": 681817,
+      "sha256": "ae06848f5de1587d3913dcd7b0c98231059e36be86ae1a36ab9168c97529f1ff",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-cup-v1-mobile.png",
+        "bytes": 204869,
+        "sha256": "288b3d54fc604e9cd35c018e8d64645cd80c539569c8a566400ddc2cfdcf318a"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable cup, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:03:34.587Z",
+        "taskId": "857280aa-2920-4f0f-862e-e85f8accc244",
+        "sha256": "e25086a0c181b19e465232104ff505c20e075740c03f5e5650a8b92e633a909b",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-cup-v1-preview.webp",
+        "bytes": 1378,
+        "sha256": "6c615a8e1187119a10d2bde9ec8acedfe60c98f37c18392f9f1f9e1f538b2410"
+      }
+    },
+    {
+      "id": "2026-11-images-lamp-v1",
+      "kind": "image",
+      "concept": "lamp",
+      "label": "lamp visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-lamp-v1.png",
+      "bytes": 819403,
+      "sha256": "21ae448ad021b5c65a0defcd0edb7e088716d07c32e9e97dece6c24ffb793d8b",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-lamp-v1-mobile.png",
+        "bytes": 251828,
+        "sha256": "1d30eef37480895f261c2627bba74c4cdd43dd07e9246cf030c94b46a2083cb1"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable lamp, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:04:01.395Z",
+        "taskId": "0421b080-dd77-4350-8f9b-9c9dce5fd2ba",
+        "sha256": "91ffdb2aa1b2b7a10fc26af7dd1409f35fb230f75749f61ad8aa354e3165f24b",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-lamp-v1-preview.webp",
+        "bytes": 2060,
+        "sha256": "da37f77350ce3e7eb62956956c9f7ab4352de26ce263bbe0519c83bfcad81c5b"
+      }
+    },
+    {
+      "id": "2026-11-images-window-v1",
+      "kind": "image",
+      "concept": "window",
+      "label": "window visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-window-v1.png",
+      "bytes": 703122,
+      "sha256": "e623734d0855b36378ef142d34a3d4699602bfd18a22c5f0be218a5a5aff3798",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-window-v1-mobile.png",
+        "bytes": 191625,
+        "sha256": "40f4c7091143af2d494a62f94ccc4ce6870ddecee2a3dfb0bb69abfad20d8541"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable window, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:04:23.061Z",
+        "taskId": "1ab2ef7c-a41e-4746-a8f5-da9abe17f38a",
+        "sha256": "f0e86dbda4db6b2d7b6331b3aee7c04e2d348e1c83253d027064a6379f2067bc",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-window-v1-preview.webp",
+        "bytes": 1986,
+        "sha256": "6cf757cee266f3c5ada7c59a1b9e3dde1180ddc3e78b8c7d04d5ea2d7e8372e1"
+      }
+    },
+    {
+      "id": "2026-11-images-bicycle-v1",
+      "kind": "image",
+      "concept": "bicycle",
+      "label": "bicycle visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-bicycle-v1.png",
+      "bytes": 710691,
+      "sha256": "33d7eb74211586db339f69de2fd07124ed0463d63a82b9859f804623450229bf",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-bicycle-v1-mobile.png",
+        "bytes": 221860,
+        "sha256": "17f0fb92755834ad6f7befc0d30f03312a066ecd0fba6ac195cfb45d51ce76a7"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable bicycle, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:04:49.784Z",
+        "taskId": "e8580ce1-ca6e-42ca-9882-cf808b1b91f1",
+        "sha256": "b06d6d933f833d510b5795ad70b135d3d813508f2a3c005c063da27ccdd48957",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-bicycle-v1-preview.webp",
+        "bytes": 5886,
+        "sha256": "fd7b6fbcab7c3528161f770e994f78e51ed6ed963ff6d550f33c63778094b371"
+      }
+    },
+    {
+      "id": "2026-11-images-basket-v1",
+      "kind": "image",
+      "concept": "basket",
+      "label": "basket visual candidate",
+      "status": "draft",
+      "path": "sensory/2026-11/2026-11-images-basket-v1.png",
+      "bytes": 1174503,
+      "sha256": "1aaba05e7b5eeb04f20b09e8ddd578b88e6f321c4e2ac846d06542472a4b8424",
+      "mobile": {
+        "path": "sensory/2026-11/2026-11-images-basket-v1-mobile.png",
+        "bytes": 323779,
+        "sha256": "2cbc4b18e50cfcc70066c146e9394abee3f286fb078204b20edaf41c4be24556"
+      },
+      "source": {
+        "provider": "Runway",
+        "model": "gen4_image",
+        "prompt": "One clearly recognizable basket, entirely visible, centered with generous empty space on a plain warm ivory background. Realistic product photograph. Educational vocabulary illustration. No text, letters, logos, extra objects, people or dramatic shadows.",
+        "generatedAt": "2026-11-13T01:05:16.481Z",
+        "taskId": "04c09cae-8321-42da-8d90-08898b750a12",
+        "sha256": "11ed5a52061efa84f0be7e742715dab6a8333eb8162f8e35f1e40c280e7023e0",
+        "license": "Provider account terms; operator rights review pending"
+      },
+      "review": null,
+      "batch": {
+        "month": "2026-11",
+        "creditCap": 60,
+        "reportedCreditsUsed": 60,
+        "finalBillingVerified": false
+      },
+      "preview": {
+        "path": "sensory/2026-11/2026-11-images-basket-v1-preview.webp",
+        "bytes": 5016,
+        "sha256": "d8215ae16d0357dbc759ab2a95269048cab31246641927672c294661bce82d6c"
+      }
+    }
+  ]
+}

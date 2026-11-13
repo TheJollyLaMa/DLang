@@ -160,6 +160,7 @@ export function mountAudio({ ipfs, openDialog }) {
     if (mediaURL) URL.revokeObjectURL(mediaURL); mediaURL = null;
   }
   async function playBlob(blob) {
+    window.dispatchEvent(new Event('dlang:audio-start'));
     stopPlayer();
     const ownGeneration = generation;
     mediaURL = URL.createObjectURL(blob); player = new Audio(mediaURL);
@@ -203,6 +204,7 @@ export function mountAudio({ ipfs, openDialog }) {
     return selectedNarration;
   }
   async function playNarrationTurn(record, index) {
+    window.dispatchEvent(new Event('dlang:audio-start'));
     stopPlayer();
     return turnPlayer.play(record, index, async () => {
       await validateContribution(record);
@@ -213,6 +215,7 @@ export function mountAudio({ ipfs, openDialog }) {
     });
   }
   async function play(tag, id, sceneContext = null) {
+    window.dispatchEvent(new Event('dlang:audio-start'));
     if (language !== tag || concept !== id) { selected = null; draftGeneration++; $('voice-publish').disabled = true; $('voice-preview').disabled = true; }
     language = tag; concept = id; labels(); stopPlayer();
     const current = generation, entry = PACKS[tag]?.[id];
@@ -260,6 +263,7 @@ export function mountAudio({ ipfs, openDialog }) {
   $('voice-open').onclick = () => { openDialog('voice-dialog'); void loadDraft(); };
   for (const id of ['voice-language', 'voice-concept']) $(id).onchange = () => { language = $('voice-language').value; concept = $('voice-concept').value; void loadDraft(); };
   $('voice-record').onclick = async () => {
+    window.dispatchEvent(new Event('dlang:audio-start'));
     if (recorder?.state === 'recording') { recorder.stop(); return; }
     if (!navigator.mediaDevices?.getUserMedia || !globalThis.MediaRecorder) { status('Microphone recording is unavailable in this browser; use HTTPS and a supported device.'); return; }
     $('voice-record').disabled = true;

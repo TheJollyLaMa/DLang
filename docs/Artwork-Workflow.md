@@ -1,9 +1,11 @@
 # DLang artwork review and import
 
-The original scene renderer remains the production fallback. The Runway account
-is not connected to this repository; generation, recurring spend, and automatic
-publication are disabled. This workflow only validates and imports a manually
-prepared, human-reviewed batch. It does not call Runway or spend credits.
+The original scene renderer remains the production fallback. This import
+workflow only validates and imports a manually prepared, human-reviewed batch;
+it does not call Runway or spend credits. Separately authorized API generation
+now saves draft candidates for sensory-library preview, not lesson approval;
+see [Sensory-Library.md](./Sensory-Library.md). No recurring spending or
+automatic approval is installed.
 
 The steward reports 625 credits per month on the existing Runway web plan.
 Those credits can supply a manually generated 12-image batch for this import
@@ -14,7 +16,9 @@ Eligible organization configurations may support transfers
 ([API projects in your Organization space](https://help.runwayml.com/hc/en-us/articles/55042248433939-API-projects-in-your-Organization-space));
 do not assume this account qualifies. API automation requires a verified API
 project balance, its server-side API key, and explicit separate spend approval.
-No API generation, credit transfer, or top-up is authorized or enabled here.
+The November 2026 pilot separately verified a 1,000-credit API trial and
+generated twelve draft 720p stills using 60 credits. No credit transfer or
+top-up was enabled. This does not change the review/import requirements below.
 
 ## Monthly batch
 
@@ -55,7 +59,8 @@ No API generation, credit transfer, or top-up is authorized or enabled here.
 ## Manifest fields
 
 - `provider`: `{ "name": "Runway", "accountIntegration": "unavailable",
-  "automation": "disabled" }`.
+  "automation": "disabled" }` for a manual web batch; use `"operator-api"`
+  instead of `"unavailable"` for an explicitly authorized API-generated batch.
 - `budget`: positive `creditCap` approved in advance, actual `creditsUsed` no
   greater than the cap, and named approver/time.
 - Each asset's `files.desktop` and `files.mobile`: a local relative PNG path and
@@ -75,7 +80,7 @@ or real learner recognition evidence is unavailable.
 `public/dlang/artwork.mjs` returns an approved, compatible asset or a precise
 `unavailable`/`fallback` result. Consumers must retain the current renderer for
 either result. The catalog starts empty and unavailable. This module is not
-mounted into the shared app shell here: artwork rotation, target geometry,
-accessibility presentation, and narration rebinding require receiving-app
-acceptance after actual approved assets exist. Scene hashes, saved progress,
-and narration bindings remain unchanged until that separate integration.
+an automatic approval pipeline: compatible approved assets already render in
+scene targets, preserving original procedural fallback. Draft sensory previews
+do not enter this catalog. Scene hashes, saved progress and narration bindings
+remain unchanged by a draft batch.

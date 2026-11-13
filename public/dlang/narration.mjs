@@ -279,6 +279,7 @@ export function mountNarration({
 
   async function startCapture() {
     if (blocked) throw Error('Narration is paused during scored practice.');
+    window.dispatchEvent(new Event('dlang:audio-start'));
     const current = contextFor(getSceneContext);
     if (!current) throw Error('Choose a scene outside scored practice.');
     if (!navigator.mediaDevices?.getUserMedia || !globalThis.MediaRecorder) throw Error('Microphone recording is unavailable in this browser.');

@@ -42,6 +42,7 @@ export function mountPractice({ storage, audio, report }) {
         $('practice-help').textContent = 'Listen, say the word, then choose whether you remembered. This is self-review, not speech scoring.';
       };
       const node = $('practice-scene').querySelector(`[data-target="${target.id}"]`);
+      node.dataset.sensoryConcept = target.concept;
       node.onclick = choose; node.onkeydown = event => { if (['Enter', ' '].includes(event.key)) { event.preventDefault(); choose(); } };
       const label = PACKS[active.language][target.concept].label;
       const button = document.createElement('button'); button.type = 'button'; button.lang = active.language;
@@ -111,6 +112,7 @@ export function mountPractice({ storage, audio, report }) {
     $('library-preview').innerHTML = librarySVG(preview);
     for (const target of preview.targets) {
       const node = $('library-preview').querySelector(`[data-target="${target.id}"]`);
+      node.dataset.sensoryConcept = target.concept;
       const choose = () => { $('library-word').textContent = PACKS[languages.value][target.concept].label; $('library-word').lang = languages.value; $('library-word').disabled = false; $('library-word').onclick = () => { void audio.play(languages.value, target.concept); }; void audio.play(languages.value, target.concept); };
       node.onclick = choose; node.onkeydown = event => { if (['Enter', ' '].includes(event.key)) { event.preventDefault(); choose(); } };
     }
