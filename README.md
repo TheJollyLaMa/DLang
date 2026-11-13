@@ -103,6 +103,13 @@ migration. [Successor receipts](public/dlang/staircase-deployment.json).
 Future DVERT/subscription adapters can fund net settled USDC revenue through
 `fund`; issues #4/#5 remain deferred and refundable liabilities stay separate.
 
+The [voice reward pilot](docs/Voice-Reward-Pilot.md) implements a **separate**
+$1 native Base USDC-backed pool for Nov 16–23, 2026, Monday 00:00 New York.
+Signed independent completed word practice shares 10,000 Ommm proportionally;
+deliberate repeats count, thumbs do not. Funding is not live: deployment,
+verified durable host configuration and one settlement await parent review and
+broadcast. Existing learning holders remain untouched.
+
 The nine-hop white rabbit tour walks through free Discover practice, languages,
 growing levels, Voices, a no-payment first-week rehearsal, the tested 50/50 split,
 dividend resets and the notebook. Its actions open the actual icon panels without

@@ -92,15 +92,17 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         return step;
     }
 
-    function bootstrap() external onlyOwner active nonReentrant {
+    function bootstrapAssets() public pure virtual returns (uint256) { return INITIAL_ASSETS; }
+
+    function bootstrap() public virtual onlyOwner active nonReentrant {
         if (funded) revert Unavailable();
-        _collect(INITIAL_ASSETS);
+        _collect(bootstrapAssets());
         funded = true;
         _checkpoint();
-        emit Funded(msg.sender, INITIAL_ASSETS);
+        emit Funded(msg.sender, bootstrapAssets());
     }
 
-    function fund(uint256 assets) external active nonReentrant {
+    function fund(uint256 assets) external virtual active nonReentrant {
         if (!funded) revert Unavailable();
         if (assets == 0) revert InvalidAmount();
         _collect(assets);
@@ -196,7 +198,7 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         return Math.mulDiv(units, reserve, supply, Math.Rounding.Ceil);
     }
 
-    function fundAndMint(uint256 units, uint256 maximumAssets) external onlyOwner whenNotPaused nonReentrant {
+    function fundAndMint(uint256 units, uint256 maximumAssets) external virtual onlyOwner whenNotPaused nonReentrant {
         uint256 assets = previewMint(units);
         if (assets > maximumAssets) revert MinimumNotMet();
         _checkpoint();
@@ -206,14 +208,14 @@ contract OmmmStaircase is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         emit BackedMint(units, assets);
     }
 
-    function awardDay(address steward, uint256 day, bytes32 evidence) external onlyOwner whenNotPaused nonReentrant {
+    function awardDay(address steward, uint256 day, bytes32 evidence) external virtual onlyOwner whenNotPaused nonReentrant {
         if (day < firstDay || day >= block.timestamp / 1 days || awardedDay[steward][day]) revert InvalidAward();
         awardedDay[steward][day] = true;
         _award(steward, DAY_REWARD, evidence);
         emit LearningAward(steward, 0, day, DAY_REWARD, evidence);
     }
 
-    function awardLevel(address steward, uint8 level, bytes32 evidence) external onlyOwner whenNotPaused nonReentrant {
+    function awardLevel(address steward, uint8 level, bytes32 evidence) external virtual onlyOwner whenNotPaused nonReentrant {
         if (level == 0 || level > 6 || level != awardedLevel[steward] + 1) revert InvalidAward();
         awardedLevel[steward] = level;
         _award(steward, LEVEL_REWARD, evidence);

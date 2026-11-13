@@ -17,6 +17,7 @@ import { mountOmmm } from './ommm.mjs';
 import { mountSensory } from './sensory.mjs';
 import { mountVoiceSeeding } from './voice-seeding.mjs';
 import { createWordClient } from './community-words.mjs';
+import { createVoiceRewardClient } from './voice-rewards.mjs';
 const landing = mountLanding();
 const $ = id => document.getElementById(id);
 const languageName = tag => LANGUAGE_NAMES[tag] || tag;
@@ -131,12 +132,14 @@ $('admin-open').onclick = () => openDialog('admin-dialog');
 $('history-open').onclick = () => { renderHistory(); openDialog('history-dialog'); };
 $('admin-config').textContent = JSON.stringify(config, null, 2);
 mountStorage({ ipfs, storage, openDialog });
-const words = createWordClient({ signer: async () => {
+const wordSigner = async () => {
   const wallet = DecentHead.getWallet().snapshot();
   if (!wallet.connected) throw Error('Connect a whitelisted wallet to sign a WORD contribution.');
   return wallet.provider.getSigner(wallet.address);
-} });
-const audio = mountAudio({ ipfs, openDialog, words, getSceneContext, getBlocked: () => scoredPracticeBlocked });
+};
+const words = createWordClient({ signer: wordSigner });
+const voiceRewards = createVoiceRewardClient({ signer: wordSigner });
+const audio = mountAudio({ ipfs, openDialog, words, rewards: voiceRewards, getSceneContext, getBlocked: () => scoredPracticeBlocked });
 sensory = await mountSensory({ root: $('sensory-root'), audio, report,
   getBlocked: () => scoredPracticeBlocked || !landing.active });
 mountVoiceSeeding({ root: $('voice-seeding-root'), storage, report, getBlocked: () => scoredPracticeBlocked,

@@ -11,6 +11,7 @@ const output = JSON.parse(solc.compile(JSON.stringify({
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.24;
 contract Asset {
+    event Transfer(address indexed from,address indexed to,uint256 value);
     uint8 public constant decimals = 6;
     mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
@@ -28,6 +29,7 @@ contract Asset {
         if(mode==1)return false;
         balanceOf[from]-=n;
         balanceOf[to]+=mode==2?n-1:n;
+        emit Transfer(from,to,mode==2?n-1:n);
         if(callback!=address(0)) (callbackSucceeded,)=callback.call(callbackData);
         if(mode==3) assembly { return(0,0) }
         return true;

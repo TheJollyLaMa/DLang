@@ -3,7 +3,8 @@
 The receiving need is a **word-sized** contribution at the point of hearing:
 Discover, the scene library and study labels expose **Fix pronunciation**.
 Record and Publish remain separate. Long AI-voice onboarding is not required.
-Public credit, language, dialect/accent and native status are self-declared;
+Public wallet/ENS credit must match the signing contributor; language,
+dialect/accent and native status are self-declared;
 whitelisted learners are eligible too. A saved per-language browser profile
 helps with the next word; consent is never remembered as an automatic opt-in.
 
@@ -103,7 +104,7 @@ No fake speaker record, vote, gem reward or AI voice was published.
    scene** and sign with an eligible wallet. This does not start recording.
 3. To contribute, **Record this word**, say only that word, then stop and
    **Listen to my draft**. Recording is explicit and capped at 15 seconds.
-4. Enter a public nickname and self-declared accent/dialect. Native status is
+4. Enter your matching wallet or Ethereum `.eth` credit and self-declared accent/dialect. Native status is
    optional; whitelisted learners are welcome. Confirm own-voice public CC BY
    consent only if you agree. **Publish word** requests scoped wallet signatures
    for eligibility, the selected pinning provider, and the exact final record.
@@ -116,14 +117,18 @@ Playback and recording stop for private audio, panel navigation and hidden
 tabs. Scored practice prevents contributions. There is no auto microphone
 capture or automatic private-voice upload.
 
-## Future pool—not active earnings
+## Separate one-week funded reward implementation
 
-The requested eventual model is proportional shares of an approved **overall
-pool** based on qualified actual playback. Thumbs affect quality/rotation and
-therefore opportunity, not direct rewards; there are no fixed per-word grants.
-This pilot does not create click counters, play credits, reward rates, payouts,
-transactions or claimable gems. Funding, budget, qualification, replay/self/
-mute/interruption abuse policy, caps and settlement still need approval.
+The approved voice-reward pilot is a **separate** $1 native Base USDC-backed
+Ommm pool for November 16–23, 2026, Monday 00:00 New York to the next Monday,
+end exclusive. It uses signed independent audible completions, allows deliberate
+repeats, and allocates the fixed 10,000 Ommm inventory proportionally once after
+the week. Thumbs affect rotation, not play credits. Existing learning funds and
+holders remain untouched. No hosted earning/funding claim is made until the
+parent broadcasts and verifies funding and configures the durable service;
+unconfigured rewards return explicit 503. See
+[Voice-Reward-Pilot.md](Voice-Reward-Pilot.md) for qualification, trusted-browser
+limitations, recovery authority and the parent-only deployment/settlement plan.
 Sentences, scene observations, call-and-challenge and all-word voice expansion
 remain gated future work. Public WORD consent authorizes neither cloning,
 provider voice enrollment, all-word synthesis nor call impersonation.

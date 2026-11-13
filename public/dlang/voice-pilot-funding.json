@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "chainId": 8453,
+  "pool": "0x8fff93A94eDe08c462C2e6D1A61FE64Fb2F3aDB1",
+  "administrator": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
+  "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "assets": "1000000",
+  "units": "10000000000000000000000",
+  "start": 1794805200,
+  "end": 1795410000,
+  "transactionHash": "0x3282b9e5a51f2a853d5e8a2efa8c661d996c7b6cbcfc77420129c5d070ff2799",
+  "deploymentHash": "0x4aea03148ec893d07161135ef540b54c2d3ff83e28b0010c771b47e352f4e7fb",
+  "runtimeHash": "0xc8ac0a13fb23447af23053794701452f6fbf2c4159bb2bc524bc03b8c3aeb12f",
+  "additionalGasCapWei": "1000000000000000",
+  "actualFeeWei": "19001540707905",
+  "recurring": false
+}

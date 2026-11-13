@@ -43,6 +43,7 @@ test('scene hearing exposes compact WORD flow; fixture recording publishes unrev
   await page.evaluate(async cid => {
     const { mountAudio } = await import('./dlang/audio.mjs');
     const { createWordClient } = await import('./dlang/community-words.mjs');
+    const { createVoiceRewardClient } = await import('./dlang/voice-rewards.mjs');
     const { digest } = await import('./dlang/storage.mjs');
     const scene = { sceneId: 'browser-word-scene', sceneVersion: '1', level: 1, title: 'Browser chair', concepts: ['chair'], scene: { chair: true } };
     window.__captures = 0; window.__uploads = 0; window.__paused = 0; window.__blocked = false;
@@ -53,18 +54,23 @@ test('scene hearing exposes compact WORD flow; fixture recording publishes unrev
       start() { this.state = 'recording'; }
       stop() { this.state = 'inactive'; this.ondataavailable({ data: bytes }); void this.onstop(); }
     };
+    window.AudioContext = class {
+      async decodeAudioData() { return { duration: .25 }; }
+      async close() {}
+    };
     window.Audio = class {
       async play() { window.__played = true; }
       pause() { window.__paused++; }
     };
     const words = createWordClient({ signer: async () => ({ getAddress: window.wordTestAddress, signMessage: window.wordTestSign }) });
-    window.__wordAudio = mountAudio({ words, getSceneContext: () => scene, getBlocked: () => window.__blocked,
+    const rewards = createVoiceRewardClient({ signer: async () => ({ getAddress: window.wordTestAddress, signMessage: window.wordTestSign }) });
+    window.__wordAudio = mountAudio({ words, rewards, getSceneContext: () => scene, getBlocked: () => window.__blocked,
       openDialog: id => document.getElementById(id).showModal(),
       ipfs: { upload: async blob => { window.__uploads++; return { cid, uri: `ipfs://${cid}`, sha256: await digest(blob) }; }, read: async () => bytes } });
     await window.__wordAudio.openWord('en', 'chair', scene);
   }, CID);
   assert.equal(await page.evaluate(() => window.__captures), 0);
-  await page.fill('#voice-speaker', 'Disposable learner');
+  await page.fill('#voice-speaker', author.address);
   await page.fill('#voice-dialect', 'Fixture dialect');
   await page.click('#voice-record');
   await page.waitForTimeout(250);
@@ -77,7 +83,7 @@ test('scene hearing exposes compact WORD flow; fixture recording publishes unrev
   await page.click('#voice-publish');
   await page.waitForFunction(() => document.getElementById('voice-status').textContent.includes('UNREVIEWED'));
   const saved = (await (await fetch(base + '/api/words')).json()).records[0];
-  assert.equal(saved.payload.voice.speaker, 'Disposable learner');
+  assert.equal(saved.payload.voice.speaker, author.address);
   assert.equal(saved.payload.profile.nativeSpeakerDeclared, false);
   assert.equal(saved.payload.scene.sceneId, 'browser-word-scene');
   assert.equal(saved.review.status, 'unreviewed');
@@ -88,7 +94,7 @@ test('scene hearing exposes compact WORD flow; fixture recording publishes unrev
     dialog.addEventListener('close', resolve, { once: true }); dialog.close();
   }));
   await page.evaluate(() => window.__wordAudio.playWord('en', 'chair', { sceneId: 'browser-word-scene', sceneVersion: '1', level: 1, title: 'Browser chair', concepts: ['chair'], scene: { chair: true } }));
-  assert.match(await page.locator('#audio-status').textContent(), /Disposable learner.*Fixture dialect.*unreviewed.*learner.*no earnings/);
+  assert.match(await page.locator('#audio-status').textContent(), /Fixture dialect.*unreviewed.*learner.*no earnings/);
   await page.evaluate(() => window.__wordAudio.stopNarration());
   assert.ok(await page.evaluate(() => window.__paused) > 0);
   wallet = listener;

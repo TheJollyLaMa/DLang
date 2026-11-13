@@ -2,8 +2,19 @@ import { PACKS, LANGUAGE_NAMES } from './packs.mjs';
 import { cid, digest } from './storage.mjs';
 import { reviewStatus, sceneSnapshot, validateContribution } from './steward.mjs';
 import { nextCommunityWord, validateWordPayload } from './community-words.mjs';
+import { attestWordPlayback } from './voice-rewards.mjs';
 export const MAX_VOICE_BYTES = 1024 * 1024;
 export const VOICE_TYPES = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/mpeg'];
+export async function decodedWordDuration(blob) {
+  const context = new AudioContext();
+  try {
+    const buffer = await context.decodeAudioData(await blob.arrayBuffer());
+    if (!Number.isFinite(buffer.duration) || buffer.duration < .2 || buffer.duration > 15) {
+      throw Error('Decoded word must be between 0.2 and 15 seconds.');
+    }
+    return buffer.duration;
+  } finally { await context.close(); }
+}
 export async function nextReviewedNarration(records, language, sceneContext, previousId = '') {
   const snapshot = await sceneSnapshot(sceneContext, language), matches = [];
   for (const record of records) {
@@ -134,7 +145,7 @@ async function draft(action, key, value) {
     tx.oncomplete = () => resolve(request.result); tx.onerror = () => reject(Error('Voice draft could not be saved/read.')); tx.onabort = tx.onerror;
   }); } finally { db.close(); }
 }
-export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = () => null, getBlocked: externallyBlocked = () => false }) {
+export function mountAudio({ ipfs, openDialog, words = null, rewards = null, getSceneContext = () => null, getBlocked: externallyBlocked = () => false }) {
   const $ = id => document.getElementById(id);
   let privateAudio = false;
   const getBlocked = () => externallyBlocked() || privateAudio;
@@ -143,6 +154,14 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
   const narrationPrevious = new Map();
   let community = [], communityReady = false, heard = null, wordContext = null;
   const communityPrevious = new Map();
+  let cancelReward = null;
+  if ($('voice-reward-status')) {
+    rewards?.list().then(info => {
+      $('voice-reward-status').textContent = info.active
+        ? 'One funded week active · $1 Base USDC backing · signed completed practice shares 10,000 Ommm.'
+        : 'One funded week: Nov 16–23, 2026, Monday 00:00 New York. No play credit outside that week.';
+    }).catch(error => { $('voice-reward-status').textContent = error.message; });
+  }
   async function refreshCommunity() {
     if (!words) throw Error('Shared WORD service is not configured. Your recording remains a local draft.');
     const result = await words.list();
@@ -205,17 +224,20 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
     catch (error) { status(error.message); }
   }
   function stopPlayer() {
+    cancelReward?.(); cancelReward = null;
     generation++; player?.pause(); globalThis.speechSynthesis?.cancel();
     turnPlayer?.stop();
     if (mediaURL) URL.revokeObjectURL(mediaURL); mediaURL = null;
   }
-  async function playBlob(blob) {
+  async function playBlob(blob, rewardSession = null) {
     if (getBlocked() || recorder?.state === 'recording') throw Error('Playback disabled during scored practice, private audio or recording.');
     window.dispatchEvent(new Event('dlang:audio-start'));
     stopPlayer();
     const ownGeneration = generation;
     mediaURL = URL.createObjectURL(blob); player = new Audio(mediaURL);
     const currentPlayer = player;
+    if (rewardSession) cancelReward = attestWordPlayback({ element: currentPlayer, session: rewardSession, rewards,
+      report: message => { if ($('voice-reward-status')) $('voice-reward-status').textContent = message; } });
     currentPlayer.onerror = () => status('This audio cannot be decoded. Try a different voice or record an example.');
     await currentPlayer.play();
     if (ownGeneration !== generation) {
@@ -267,6 +289,7 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
     });
   }
   async function play(tag, id, sceneContext = null, wordScene = null) {
+    const deliberate = globalThis.navigator?.userActivation?.isActive === true && $('voice-reward-opt-in')?.checked === true;
     if (getBlocked() || recorder?.state === 'recording') { stopPlayer(); return; }
     window.dispatchEvent(new Event('dlang:audio-start'));
     if (language !== tag || concept !== id) { selected = null; draftGeneration++; $('voice-publish').disabled = true; $('voice-preview').disabled = true; }
@@ -303,13 +326,23 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
         const blob = await ipfs.read(voice.cid, MAX_VOICE_BYTES);
         if (blob.size !== voice.size || await digest(blob) !== voice.sha256) throw Error('Community word bytes do not match the signed recording.');
         if (current !== generation) return;
-        await playBlob(new Blob([blob], { type: voice.type }));
+        let rewardSession = null;
+        if (deliberate && rewards && !selectedWord.legacy) {
+          try {
+            const started = await rewards.start(selectedWord.id);
+            rewardSession = started.session;
+          } catch (error) {
+            if ($('voice-reward-status')) $('voice-reward-status').textContent = `Playback only, no reward: ${error.message}`;
+          }
+          if (current !== generation || getBlocked()) return;
+        }
+        await playBlob(new Blob([blob], { type: voice.type }), rewardSession);
         const last = communityPrevious.get(key());
         communityPrevious.set(key(), { ...selectedWord,
           consecutivePlays: last?.authorId === selectedWord.authorId ? (last.consecutivePlays || 1) + 1 : 1 });
         heard = { ...heard, source: selectedWord.legacy ? 'legacy-recording' : 'community-word', recordId: selectedWord.id, record: selectedWord };
         updateFeedback();
-        status(`${voice.speaker} · ${selectedWord.payload.profile.dialect} · ${selectedWord.review.status} pilot recording · ${voice.nativeSpeakerDeclared ? 'native speaker self-declared' : 'learner / non-native self-declared'} · no earnings accrued.`);
+        status(`${voice.speaker} · ${selectedWord.payload.profile.dialect} · ${selectedWord.review.status} pilot recording · ${voice.nativeSpeakerDeclared ? 'native speaker self-declared' : 'learner / non-native self-declared'} · ${rewardSession ? 'signed completion pending; no earnings yet' : 'no earnings accrued'}.`);
         return { source: 'community-word', record: selectedWord };
       }
     } catch (error) {
@@ -370,9 +403,10 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
         clearTimeout(timer); stream.getTracks().forEach(track => track.stop());
         $('voice-record').textContent = 'Record my pronunciation'; $('voice-language').disabled = false; $('voice-concept').disabled = false;
         if (failed) { await loadDraft(); status('Recording failed; no new draft saved or published.'); return; }
-        const blob = new Blob(chunks, { type: type.split(';')[0] }), duration = Math.min(15, (Date.now() - recordingAt) / 1000);
+        const blob = new Blob(chunks, { type: type.split(';')[0] });
         try {
-          if (!blob.size || blob.size > MAX_VOICE_BYTES || duration < .2) throw Error('Record between 0.2 and 15 seconds, up to 1 MiB.');
+          if (!blob.size || blob.size > MAX_VOICE_BYTES || Date.now() - recordingAt < 200) throw Error('Record between 0.2 and 15 seconds, up to 1 MiB.');
+          const duration = await decodedWordDuration(blob);
           await draft('put', recordingContext.key, { blob, duration, language: recordingContext.language, concept: recordingContext.concept, scene: recordingContext.scene });
           await loadDraft(); status('Draft saved on this device. Preview it; Publish makes your voice public.');
         } catch (error) { status(error.message); }
@@ -387,15 +421,18 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
   $('voice-publish').onclick = async () => {
     if (!selected || recorder?.state === 'recording') return;
     const saved = selected, speaker = $('voice-speaker').value.trim();
-    if (!speaker || speaker.length > 60) { status('Enter a public speaker credit, such as a nickname.'); return; }
+    if (!speaker || speaker.length > 60) { status('Enter a public speaker credit: your matching ENS .eth name or contributor wallet.'); return; }
     $('voice-publish').disabled = true;
     try {
       if (getBlocked() || !communityReady) throw Error('Shared WORD persistence must be available before public upload. No upload started.');
       if (!$('voice-consent').checked) throw Error('Confirm your own voice and public word-recording consent first.');
+      if (!rewards) throw Error('Contributor credit verification is unavailable.');
+      await rewards.verifyCredit(speaker);
       const profile = { language: saved.language, dialect: $('voice-dialect').value.trim(), nativeSpeakerDeclared: $('voice-native').checked };
       if (!profile.dialect || profile.dialect.length > 80 || !saved.scene) throw Error('Record in a scene and enter your self-declared accent / dialect.');
       // Authorize eligibility before irreversible IPFS upload; this does not authorize cloning or money.
       await submitWordAction('authorize-upload', { purpose: 'public-word-upload', sha256: await digest(saved.blob),
+        credit: speaker,
         scene: saved.scene, language: saved.language, concept: saved.concept, profile,
         consent: 'own-voice-public-word-CC-BY-4.0' });
       if (getBlocked() || !$('voice-consent').checked || selected !== saved || !$('voice-dialog').open) {
@@ -415,7 +452,9 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
         license: 'CC-BY-4.0', nativeSpeakerDeclared: profile.nativeSpeakerDeclared });
       const payload = { voice: metadata, profile, scene: saved.scene, consent: 'own-voice-public-word-CC-BY-4.0', createdAt: new Date().toISOString() };
       await validateWordPayload(payload);
-      await submitWordAction('publish', payload);
+      const published = await submitWordAction('publish', payload);
+      const record = published.records.find(row => row.payload.voice.cid === receipt.cid);
+      if ($('voice-reward-enroll')) $('voice-reward-enroll').dataset.recordId = record.id;
       let profileWarning = '';
       try { await draft('put', `profile:${saved.language}`, { speaker, dialect: profile.dialect, nativeSpeakerDeclared: profile.nativeSpeakerDeclared }); }
       catch (error) { profileWarning = ` Local profile was not saved: ${error.message}`; }
@@ -425,6 +464,15 @@ export function mountAudio({ ipfs, openDialog, words = null, getSceneContext = (
       status(`Public word saved to shared pilot rotation: ${receipt.uri} · UNREVIEWED · ${speaker} · ${profile.dialect}. No payment or AI consent granted.${profileWarning}`);
     } catch (error) { status(`Publish incomplete: ${error.message} Any completed IPFS upload remains public; no review submission was sent automatically.`); }
     finally { $('voice-publish').disabled = !selected; }
+  };
+  if ($('voice-reward-enroll')) $('voice-reward-enroll').onclick = async () => {
+    try {
+      if (getBlocked() || !rewards) throw Error('Reward enrollment unavailable during scored practice/private audio.');
+      const recordId = $('voice-reward-enroll').dataset.recordId || heard?.record?.id;
+      if (!recordId) throw Error('Publish your own word or select your own existing word first.');
+      await rewards.enroll(recordId, $('voice-speaker').value.trim());
+      $('voice-reward-status').textContent = 'Matching signed contributor credit enrolled. No self-listen earnings.';
+    } catch (error) { $('voice-reward-status').textContent = error.message; }
   };
   $('voice-flag').onclick = async () => {
     try {

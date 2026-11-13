@@ -2,12 +2,14 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
-const { verifyMessage } = require('ethers');
+const { verifyMessage, getAddress } = require('ethers');
+const { writeDurableJSON } = require('./durable-json.cjs');
 
-async function createWordService({ storePath, origin, roster, reviewers = [], now = Date.now }) {
+async function createWordService({ storePath, origin, roster, reviewers = [], ensProvider, now = Date.now }) {
   const { hashJSON, sceneSnapshot, reviewerEligible } = await import('../public/dlang/steward.mjs');
   const { pilotEligibility } = await import('../public/dlang/pilot.mjs');
   const { validateWordPayload, wordVersion } = await import('../public/dlang/community-words.mjs');
+  const { resolveContributorCredit } = await import('../public/dlang/identity.mjs');
   const url = new URL(origin);
   if (url.origin !== origin || !['https:', 'http:'].includes(url.protocol)
     || url.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(url.hostname)) throw Error('Word service needs an exact HTTPS origin (localhost for testing).');
@@ -23,10 +25,7 @@ async function createWordService({ storePath, origin, roster, reviewers = [], no
   }
   const nonces = new Map();
   async function persist(next) {
-    const pending = `${storePath}.pending`;
-    const file = await fs.open(pending, 'w', 0o600);
-    try { await file.writeFile(JSON.stringify(next)); await file.sync(); } finally { await file.close(); }
-    await fs.rename(pending, storePath);
+    await writeDurableJSON(storePath, next);
     state = next;
   }
   // Verify storage before advertising writable readiness; never fall back to browser-only success.
@@ -55,11 +54,20 @@ async function createWordService({ storePath, origin, roster, reviewers = [], no
     if (!eligible(auth.address)) throw Error('Pilot contributor is no longer eligible.');
     if (auth.action === 'authorize-upload') {
       if (payload.purpose !== 'public-word-upload' || !/^[a-f0-9]{64}$/.test(payload.sha256 || '')) throw Error('Explicit word-upload authorization required.');
+      if (payload.credit !== undefined) {
+        if (/^0x/i.test(payload.credit?.trim())) getAddress(payload.credit.trim());
+        await resolveContributorCredit(payload.credit, auth.address, ensProvider);
+      }
       return { ...list(), eligible: true };
     }
     const next = structuredClone(state), at = new Date(now()).toISOString();
     if (auth.action === 'publish') {
       await validateWordPayload(payload);
+      // Historical nickname credits remain playable, but cannot enroll for rewards.
+      if (/^0x/i.test(payload.voice.speaker.trim()) || /\.eth$/i.test(payload.voice.speaker.trim())) {
+        if (/^0x/i.test(payload.voice.speaker.trim())) getAddress(payload.voice.speaker.trim());
+        await resolveContributorCredit(payload.voice.speaker, auth.address, ensProvider);
+      }
       const id = await wordVersion(payload, auth.address);
       if (next.records.some(row => row.id === id || row.payload.voice.cid === payload.voice.cid)) throw Error('This recording is already published.');
       if (next.records.length >= 5000) throw Error('Pilot recording limit reached.');

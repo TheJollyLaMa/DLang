@@ -6,7 +6,7 @@ export function compileOmmm() {
 }
 
 export function compileContract(name) {
-  if (!['OmmmReserve', 'OmmmStaircase', 'DLangStaircaseTrial'].includes(name)) throw Error('Unsupported contract compilation target.');
+  if (!['OmmmReserve', 'OmmmStaircase', 'OmmmVoicePilot', 'DLangStaircaseTrial'].includes(name)) throw Error('Unsupported contract compilation target.');
   const source = fs.readFileSync(new URL(`../contracts/dlang/${name}.sol`, import.meta.url), 'utf8');
   const input = {
     language: 'Solidity', sources: { [`${name}.sol`]: { content: source } },
@@ -16,6 +16,11 @@ export function compileContract(name) {
     }
   };
   const output = JSON.parse(solc.compile(JSON.stringify(input), { import(path) {
+    if (name === 'OmmmVoicePilot' && path === 'OmmmStaircase.sol') {
+      const contents = fs.readFileSync(new URL('../contracts/dlang/OmmmStaircase.sol', import.meta.url), 'utf8');
+      input.sources[path] = { content: contents };
+      return { contents };
+    }
     if (!path.startsWith('@openzeppelin/contracts/') || path.includes('..')) return { error: 'Unexpected contract import' };
     try {
       const contents = fs.readFileSync(new URL(`node_modules/${path}`, import.meta.url), 'utf8');

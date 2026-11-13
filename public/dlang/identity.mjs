@@ -40,3 +40,29 @@ export async function resolveArtwork(address, name, provider) {
   const [avatar, banner, header] = await Promise.all([resolver.getAvatar(), resolver.getText('banner'), resolver.getText('header')]);
   return { ensName, avatar: imageURL(typeof avatar === 'string' ? avatar : avatar?.url || ''), banner: imageURL(banner || header || '') };
 }
+
+export async function resolveContributorCredit(credit, contributorWallet, provider) {
+  if (typeof contributorWallet !== 'string' || !/^0x[0-9a-f]{40}$/i.test(contributorWallet)) {
+    throw Error('Connect a valid contributor wallet before verifying public credit.');
+  }
+  if (typeof credit !== 'string') throw Error('Enter a wallet address or ASCII .eth name for public credit.');
+  const supplied = credit.trim();
+  let resolved, kind;
+  if (/^0x[0-9a-f]{40}$/i.test(supplied)) {
+    resolved = supplied; kind = 'wallet';
+  } else {
+    if (!/^[a-z0-9](?:[a-z0-9.-]{0,96}[a-z0-9])?\.eth$/i.test(supplied)
+      || supplied.split('.').some(label => !label || label.startsWith('-') || label.endsWith('-'))) {
+      throw Error('Enter a wallet address or ASCII .eth name, not a nickname or URL.');
+    }
+    if (!provider || BigInt((await provider.getNetwork()).chainId) !== 1n) {
+      throw Error('Ethereum mainnet ENS resolution is required to verify public credit.');
+    }
+    resolved = await provider.resolveName(supplied.toLowerCase()); kind = 'ens';
+    if (!resolved || !/^0x[0-9a-f]{40}$/i.test(resolved)) throw Error('ENS credit has no valid wallet resolution.');
+  }
+  if (resolved.toLowerCase() !== contributorWallet.toLowerCase()) {
+    throw Error('Public credit must resolve to the signing contributor wallet.');
+  }
+  return { kind, credit: supplied.toLowerCase(), wallet: contributorWallet.toLowerCase() };
+}
