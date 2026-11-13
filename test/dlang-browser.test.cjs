@@ -55,7 +55,10 @@ for(const width of [1280,375])test(`${width}px three-a-day practice: audible tou
   });
   assert.equal(await page.locator('#practice-scene [data-target]').count(),0);
   await page.selectOption('#practice-language','hi');await page.click('#practice-start');
-  await page.locator('#practice-scene [data-target]').first().click();await page.click('#practice-word');
+  await page.locator('#practice-scene [data-target]').first().click();
+  await page.waitForFunction(()=>window.__spoken.length===1);
+  await page.click('#practice-word');
+  await page.waitForFunction(()=>window.__spoken.length===2);
   assert.match(await page.locator('#audio-status').textContent(),/device synthesis/);
   assert.equal(await page.evaluate(()=>window.__spoken.length),2);
   await page.click('#practice-remembered');
@@ -107,7 +110,7 @@ test('ENS artwork resolves against connected wallet; local artwork and profile s
   assert.equal(await page.evaluate(()=>localStorage.getItem('dlang-personal-profile-v1')),null);
   assert.deepEqual(errors,[]);
 });
-test('voice microphone is explicit, draft survives reload, native/public upload is explicit, delete remains local',async t=>{
+test('voice microphone is explicit, draft survives reload, unconfigured hosted publication is refused, delete remains local',async t=>{
   const {page,external,errors}=await setup(t,{microphone:true});
   const openVoiceStudio=async()=>{
     // The static button can be visible before mountAudio hydrates it after reload.
@@ -130,7 +133,7 @@ test('voice microphone is explicit, draft survives reload, native/public upload 
   await page.click('#voice-publish');assert.match(await page.locator('#voice-status').textContent(),/public speaker credit/);
   await page.fill('#voice-speaker','Test speaker');await page.click('#voice-publish');
   await page.waitForFunction(()=>document.getElementById('voice-status').textContent.includes('Publish incomplete'));
-  assert.match(await page.locator('#voice-status').textContent(),/Connect a wallet/);
+  assert.match(await page.locator('#voice-status').textContent(),/Shared WORD persistence.*No upload started/);
   assert.equal(await page.locator('#voice-submission a').count(),0);
   await page.click('#voice-delete');await page.waitForFunction(()=>document.getElementById('voice-preview').disabled);
   await page.keyboard.press('Escape');
@@ -143,6 +146,7 @@ test('three-a-day local midnight caps the deadline; another tab cannot fork or s
   await page.clock.pauseAt(new Date(late.getTime()+1000));
   const peer=await context.newPage();
   await peer.goto(base+'/dlang.html');await openTool(peer,'practice');
+  await peer.waitForFunction(()=>document.getElementById('practice-summary').textContent.includes('0 of 3 sessions'));
   await peer.evaluate(()=>{
     window.__crossTabStatus=[];
     const status=document.getElementById('dlang-status');
@@ -181,7 +185,7 @@ test('IPFS personal Kubo check, explicit public backup with exact-byte gateway v
     uploads++;backup=route.request().postDataBuffer().toString().match(/\r\n\r\n([\s\S]*?)\r\n--/)[1];
     await route.fulfill({json:{Hash:cid}});
   });
-  await context.route('https://gateway.example/ipfs/**',route=>route.fulfill({body:backup,contentType:'application/json'}));
+  await context.route(base+'/kubo/api/v0/cat?**',route=>route.fulfill({body:backup,contentType:'application/json'}));
   await page.click('#storage-open');await page.selectOption('#storage-provider','local');
   await page.fill('#storage-api',base+'/kubo');await page.fill('#storage-gateway','https://gateway.example/ipfs');
   await page.locator('#storage-form button[type=submit],#storage-form button:not([type])').click();
@@ -197,7 +201,7 @@ test('IPFS personal Kubo check, explicit public backup with exact-byte gateway v
   await page.click('#storage-restore');
   await page.waitForFunction(()=>document.getElementById('storage-status').textContent.includes('different practice records'));
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('dlang-practice-v1')).attempts.length),1);
-  await context.route('https://gateway.example/ipfs/**',route=>route.fulfill({body:'wrong bytes'}));
+  await context.route(base+'/kubo/api/v0/cat?**',route=>route.fulfill({body:'wrong bytes'}));
   await page.click('#storage-backup');await page.waitForFunction(()=>document.getElementById('storage-status').textContent.includes('do not match'));
   assert.deepEqual(errors,[]);
 });

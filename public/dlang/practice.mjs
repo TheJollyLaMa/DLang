@@ -18,6 +18,17 @@ export function mountPractice({ storage, audio, report }) {
   function announceSceneContext() {
     window.dispatchEvent(new CustomEvent('dlang:scene', { detail: getSceneContext() }));
   }
+  function wordContext(current = scene || previewScene) {
+    return current ? { scene: structuredClone(current), sceneId: current.id, sceneVersion: String(SCENE_VERSION),
+      title: current.title, level: current.level, concepts: current.targets.map(target => target.concept) } : null;
+  }
+  const practiceFix = document.createElement('button');
+  practiceFix.type = 'button'; practiceFix.textContent = 'Fix pronunciation'; practiceFix.disabled = true;
+  practiceFix.onclick = () => { if (active && chosen) void audio.openWord(active.language, chosen, wordContext(scene)); };
+  $('practice-word').after(practiceFix);
+  const libraryFix = document.createElement('button');
+  libraryFix.type = 'button'; libraryFix.textContent = 'Fix pronunciation'; libraryFix.disabled = true;
+  $('library-word').after(libraryFix);
   function load() { state = readPractice(storage); }
   function summary() {
     const stats = practiceStats(state);
@@ -38,7 +49,8 @@ export function mountPractice({ storage, audio, report }) {
         $('practice-word').textContent = PACKS[active.language][chosen].label;
         $('practice-word').lang = active.language;
         $('practice-word').disabled = false; $('practice-again').disabled = false; $('practice-remembered').disabled = false;
-        void audio.play(active.language, chosen);
+        practiceFix.disabled = false;
+        void audio.playWord(active.language, chosen, wordContext(scene));
         $('practice-help').textContent = 'Listen, say the word, then choose whether you remembered. This is self-review, not speech scoring.';
       };
       const node = $('practice-scene').querySelector(`[data-target="${target.id}"]`);
@@ -62,6 +74,7 @@ export function mountPractice({ storage, audio, report }) {
       const result = finishPractice(state, scene, stored.outcomes, active.language, Math.min(Date.now(), active.deadline - 1));
       storage.setItem(PRACTICE_KEY, JSON.stringify(result)); storage.removeItem(ACTIVE_KEY); state = result;
       active = null; scene = null; chosen = null; summary(); paint();
+      practiceFix.disabled = true;
       announceSceneContext();
       $('practice-word').disabled = true; $('practice-again').disabled = true; $('practice-remembered').disabled = true;
       $('practice-timer').textContent = 'Session complete';
@@ -88,7 +101,7 @@ export function mountPractice({ storage, audio, report }) {
       if (active && Object.keys(active.outcomes).length === 12) finish();
     } catch (error) { report(error.message); }
   };
-  $('practice-word').onclick = () => { if (active && chosen) void audio.play(active.language, chosen); };
+  $('practice-word').onclick = () => { if (active && chosen) void audio.playWord(active.language, chosen, wordContext(scene)); };
   $('practice-start').onclick = () => {
     try {
       if (storage.getItem(ACTIVE_KEY)) throw Error('A practice session is already running. Reload to resume it.');
@@ -107,13 +120,22 @@ export function mountPractice({ storage, audio, report }) {
     if (key === previewKey) return;
     previewKey = key;
     $('library-word').disabled = true;
+    libraryFix.disabled = true;
     const preview = YEAR_LIBRARY[day * 3 + +$('library-slot').value];
     previewScene = preview;
     $('library-preview').innerHTML = librarySVG(preview);
     for (const target of preview.targets) {
       const node = $('library-preview').querySelector(`[data-target="${target.id}"]`);
       node.dataset.sensoryConcept = target.concept;
-      const choose = () => { $('library-word').textContent = PACKS[languages.value][target.concept].label; $('library-word').lang = languages.value; $('library-word').disabled = false; $('library-word').onclick = () => { void audio.play(languages.value, target.concept); }; void audio.play(languages.value, target.concept); };
+      const choose = () => {
+        $('library-word').textContent = PACKS[languages.value][target.concept].label;
+        $('library-word').lang = languages.value; $('library-word').disabled = false;
+        const play = () => audio.playWord(languages.value, target.concept, wordContext(preview));
+        $('library-word').onclick = () => { void play(); };
+        libraryFix.disabled = false;
+        libraryFix.onclick = () => { void audio.openWord(languages.value, target.concept, wordContext(preview)); };
+        void play();
+      };
       node.onclick = choose; node.onkeydown = event => { if (['Enter', ' '].includes(event.key)) { event.preventDefault(); choose(); } };
     }
     announceSceneContext();

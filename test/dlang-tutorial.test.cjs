@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { chromium } = require('playwright');
 const { createServer } = require('../index');
+const { openTool } = require('./learning-tools.cjs');
 
 for (const width of [1280, 375]) test(`${width}px white rabbit walks through real tools without starting practice or payments`, async t => {
   const server = createServer();
@@ -30,7 +31,7 @@ for (const width of [1280, 375]) test(`${width}px white rabbit walks through rea
     { title: /first little discovery/, panel: 'practice' },
     { title: /Many languages/, panel: 'week', focus: 'study-scene' },
     { title: /Small words/, panel: 'library' },
-    { title: /Listen, echo/, panel: 'voices' },
+    { title: /little button/, panel: 'week', focus: 'study-scene' },
     { title: /first week/, panel: 'week', focus: 'week' },
     { title: /Half for friends/, panel: 'week', focus: 'week' },
     { title: /Gems climb/, personal: true },
@@ -47,7 +48,7 @@ for (const width of [1280, 375]) test(`${width}px white rabbit walks through rea
     assert.equal(await page.locator('#rabbit-progress').textContent(), `Hop ${index + 1} of 9`);
     assert.match(await page.locator('#rabbit-title').textContent(), item.title);
     if (index === 0) assert.match(await page.locator('#rabbit-body').textContent(), /Nothing.*starts your timer/);
-    if (index === 3) assert.match(await page.locator('#rabbit-body').textContent(), /two-device audio.*different operator-approved wallets.*GitHub Pages is typed-only.*signs a message, not a payment/);
+    if (index === 3) assert.match(await page.locator('#rabbit-body').textContent(), /Fix pronunciation.*learners and native speakers.*visibly unreviewed.*not accent preference.*not active earnings or cloning consent/);
     if (index === 4) assert.match(await page.locator('#rabbit-body').textContent(), /No paid round is open/);
     if (index === 5) assert.match(await page.locator('#rabbit-body').textContent(), /0.50.*0.50.*not active/);
     if (index === 6) assert.match(await page.locator('#rabbit-body').textContent(), /recover all funds.*holder backing, dividends and weekly refunds.*permanently retiring/);
@@ -63,6 +64,8 @@ for (const width of [1280, 375]) test(`${width}px white rabbit walks through rea
       assert.equal(await page.locator(`#panel-${item.panel}`).isVisible(), true);
       if (item.focus) assert.equal(await page.evaluate(() => document.activeElement.id), item.focus);
       if (index === 3) {
+        assert.ok(await page.getByRole('button', { name: /Flag or record/ }).count());
+        await openTool(page, 'voices');
         const guide = page.locator('#conversation-root details');
         await guide.locator('summary').click();
         await guide.locator('ol').waitFor({ state: 'visible' });

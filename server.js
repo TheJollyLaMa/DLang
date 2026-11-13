@@ -1,9 +1,17 @@
 'use strict';
 const { createServer } = require('./index');
 const { createConversationOperator } = require('./services/conversation-operator.cjs');
+const { createWordService } = require('./services/community-words.cjs');
 function start({ env = process.env, logger = console } = {}) {
   const conversation = createConversationOperator(env);
+  const wordService = env.DLANG_WORD_STORE && env.DLANG_WORD_ORIGIN
+    ? createWordService({ storePath: env.DLANG_WORD_STORE, origin: env.DLANG_WORD_ORIGIN,
+      roster: require('./public/dlang/pilot-roster.json'),
+      reviewers: JSON.parse(env.DLANG_WORD_REVIEWERS || '[]') })
+      .catch(error => { logger.warn(`DLang WORD service disabled: ${error.message}`); return null; })
+    : null;
   const server = createServer({
+    wordService, wordOrigin: env.DLANG_WORD_ORIGIN,
     conversationService: conversation.service,
     conversationOrigins: conversation.allowedOrigins,
     conversationLivekitOrigin: conversation.livekitOrigin || undefined

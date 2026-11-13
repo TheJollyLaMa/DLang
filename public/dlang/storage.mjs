@@ -33,7 +33,7 @@ export function createStorage({ storage, signer, fetchImpl = globalThis.fetch, o
       if (settings.provider === 'shared') {
         const result = await (await request(`${SHARED_SERVICE}/health`)).json();
         if (result.ok !== true || result.ipfsProvider !== 'pinata') throw Error('Shared pinning service is not ready.');
-        status = { state: 'ready', detail: 'Decent shared Pinata service reachable. Uploads require its configured mint-owner wallet signature, not contributor eligibility; other learners can use their own provider. No write has been tested by this health check.' };
+        status = { state: 'ready', detail: 'Decent shared Pinata service reachable. Word recordings use signed artist uploads after the DLang whitelist check; practice backups still require the mint-owner wallet. No write has been tested by this health check.' };
       } else if (settings.provider === 'pinata') {
         if (!token) throw Error('Enter your Pinata JWT for this tab.');
         await request('https://api.pinata.cloud/data/testAuthentication', { headers: { Authorization: `Bearer ${token}` } });
@@ -46,17 +46,21 @@ export function createStorage({ storage, signer, fetchImpl = globalThis.fetch, o
       return status;
     } catch (error) { status = { state: 'error', detail: error.message }; throw error; }
   }
-  async function upload(blob, name) {
+  async function upload(blob, name, { purpose = 'owner' } = {}) {
     if (!(blob instanceof Blob) || !blob.size || blob.size > 2 * 1024 * 1024) throw Error('Public upload must be 1 byte to 2 MiB.');
+    if (!['owner', 'word'].includes(purpose)) throw Error('Unknown public upload purpose.');
+    if (purpose === 'word' && (!['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/wav', 'audio/mpeg'].includes(blob.type)
+      || blob.size > 1024 * 1024)) throw Error('Word uploads require supported audio up to 1 MiB.');
     let url, headers = {}, network = false;
     if (settings.provider === 'shared') {
       const wallet = await signer();
       if (!wallet) throw Error('Connect an authorized wallet for shared pinning, or select your own provider.');
       const address = await wallet.getAddress(), issuedAt = new Date().toISOString();
       const body = { address, origin, name, size: blob.size, type: blob.type || 'application/octet-stream', issuedAt };
-      const message = ['DecentBusking IPFS upload authorization', `Wallet: ${address.toLowerCase()}`, `Origin: ${origin}`, `File: ${name}`, `Size: ${blob.size}`, `Type: ${body.type}`, `Issued At: ${issuedAt}`].join('\n');
+      const message = [purpose === 'word' ? 'DecentBusking artist media upload authorization' : 'DecentBusking IPFS upload authorization', `Wallet: ${address.toLowerCase()}`, `Origin: ${origin}`, `File: ${name}`, `Size: ${blob.size}`, `Type: ${body.type}`, `Issued At: ${issuedAt}`].join('\n');
       body.signature = await wallet.signMessage(message);
-      const result = await (await request(`${SHARED_SERVICE}/api/ipfs/upload-url`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })).json();
+      const route = purpose === 'word' ? 'submission-upload-url' : 'upload-url';
+      const result = await (await request(`${SHARED_SERVICE}/api/ipfs/${route}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })).json();
       url = result.url;
       const signed = new URL(url);
       if (signed.protocol !== 'https:' || !(signed.hostname === 'uploads.pinata.cloud' || signed.hostname.endsWith('.pinata.cloud')) || signed.username || signed.password) throw Error('Untrusted shared upload destination.');
@@ -71,7 +75,9 @@ export function createStorage({ storage, signer, fetchImpl = globalThis.fetch, o
     return { cid: value, sha256: await digest(blob), uri: `ipfs://${value}` };
   }
   async function read(value, max = 2 * 1024 * 1024) {
-    const response = await request(`${settings.gateway}/${cid(value)}`);
+    const response = settings.provider === 'local'
+      ? await request(`${settings.api}/api/v0/cat?arg=${cid(value)}`, { method: 'POST' })
+      : await request(`${settings.gateway}/${cid(value)}`);
     const reader = response.body.getReader(), chunks = []; let size = 0;
     try { for (;;) { const { done, value: chunk } = await reader.read(); if (done) break; size += chunk.length; if (size > max) throw Error('IPFS object exceeds the size limit.'); chunks.push(chunk); } }
     finally { await reader.cancel(); }

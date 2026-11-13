@@ -40,16 +40,38 @@ test('personal Pinata credentials stay in tab memory; local Kubo, gateway size c
   const bad=createStorage({storage:memory(),signer:async()=>({getAddress:async()=>'0x'+'1'.repeat(40),signMessage:async()=> 'fixture'}),fetchImpl:async()=>Response.json({url:'https://evil.example/upload'})});
   await assert.rejects(bad.upload(new Blob(['x']),'x'),/Untrusted/);
 });
-test('community library requires unique steward approval, bounded recordings and native/public license declarations; voices rotate',async()=>{
+test('word audio reuses the shared artist upload protocol without changing owner backup authorization',async()=>{
+  const {createStorage}=await import('../public/dlang/storage.mjs');
+  let signed,body;const calls=[];
+  const ipfs=createStorage({storage:memory(),origin:'https://dlang-stewards.onrender.com',
+    signer:async()=>({getAddress:async()=>'0x'+'a'.repeat(40),signMessage:async message=>{signed=message;return'fixture';}}),
+    fetchImpl:async(url,options)=>{
+      calls.push(url);
+      if(url.endsWith('/submission-upload-url')){body=JSON.parse(options.body);return Response.json({url:'https://uploads.pinata.cloud/v3/files/fixture'});}
+      assert.equal(new URL(url).hostname,'uploads.pinata.cloud');
+      assert.equal(options.body.get('network'),'public');
+      return Response.json({data:{cid:CID}});
+    }});
+  const audio=new Blob(['fixture word'],{type:'audio/webm'});
+  assert.equal((await ipfs.upload(audio,'dlang-en-chair.webm',{purpose:'word'})).cid,CID);
+  assert.equal(signed,['DecentBusking artist media upload authorization',`Wallet: ${body.address}`,
+    'Origin: https://dlang-stewards.onrender.com','File: dlang-en-chair.webm',`Size: ${audio.size}`,
+    'Type: audio/webm',`Issued At: ${body.issuedAt}`].join('\n'));
+  assert.equal(calls.some(url=>url.endsWith('/api/ipfs/upload-url')),false);
+  await assert.rejects(ipfs.upload(new Blob(['json'],{type:'application/json'}),'backup.json',{purpose:'word'}),/Word uploads/);
+  await assert.rejects(ipfs.upload(audio,'word.webm',{purpose:'unknown'}),/purpose/);
+});
+test('legacy community library requires unique steward approval, bounded recordings and truthful native/public license declarations; voices rotate',async()=>{
   const {validateVoice,validateVoices,nextVoice}=await import('../public/dlang/audio.mjs');
   const voice={version:1,language:'hi',concept:'chair',speaker:'Fixture speaker',license:'CC-BY-4.0',type:'audio/webm',duration:2,size:123,cid:CID,sha256:'a'.repeat(64),nativeSpeakerDeclared:true};
   assert.equal(validateVoice(voice),voice);
+  assert.equal(validateVoice({...voice,nativeSpeakerDeclared:false}).nativeSpeakerDeclared,false);
   assert.throws(()=>validateVoices({version:1,voices:[voice]}),/approval/);
   const first={...voice,approved:true,reviewedBy:'Fluent steward',reviewedAt:'2026-01-01T12:00:00Z'},second={...first,cid:CID2};
   const voices=validateVoices({version:1,voices:[first,second]});
   assert.equal(nextVoice(voices,'hi','chair').cid,CID);assert.equal(nextVoice(voices,'hi','chair',CID).cid,CID2);assert.equal(nextVoice(voices,'hi','chair',CID2).cid,CID);
   assert.equal(nextVoice(voices,'en','chair'),null);
-  for(const patch of [{nativeSpeakerDeclared:false},{license:'private'},{duration:16},{size:1048577},{sha256:'wrong'},{type:'text/html'},{concept:'unknown'}])assert.throws(()=>validateVoice({...voice,...patch}));
+  for(const patch of [{nativeSpeakerDeclared:'verified'},{license:'private'},{duration:16},{size:1048577},{sha256:'wrong'},{type:'text/html'},{concept:'unknown'}])assert.throws(()=>validateVoice({...voice,...patch}));
   assert.throws(()=>validateVoices({version:1,voices:[first,first]}));
 });
 test('steward import requires explicit fluent audition and verifies metadata CID, audio hash and duplicate refusal',async()=>{

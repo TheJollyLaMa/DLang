@@ -16,6 +16,7 @@ import { mountLanding } from './landing.mjs';
 import { mountOmmm } from './ommm.mjs';
 import { mountSensory } from './sensory.mjs';
 import { mountVoiceSeeding } from './voice-seeding.mjs';
+import { createWordClient } from './community-words.mjs';
 const landing = mountLanding();
 const $ = id => document.getElementById(id);
 const languageName = tag => LANGUAGE_NAMES[tag] || tag;
@@ -58,6 +59,10 @@ function setScoredPracticeBlocked(blocked) {
     if (blocked) $(id).querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
   }
   narration?.setBlocked(blocked || landing.active !== 'voices');
+  if (blocked) {
+    audio.stopNarration();
+    if ($('voice-dialog').open) $('voice-dialog').close();
+  }
   conversation?.setBlocked(blocked || landing.active !== 'voices');
   sensory?.refresh();
 }
@@ -92,7 +97,7 @@ globalThis.DECENT_CONFIG = {
       { title: 'Notice · name · narrate', body: `Seven original seek-and-find scenes with twelve targets each. Study ${Object.keys(PACKS).map(languageName).join(', ')} together; seed translations await fluent-speaker review. Stories stay separate from the 84 equally weighted object answers. No retention or pronunciation benefit has been measured.` },
       { title: 'A shared weekly commitment', body: 'The Base escrow supports 1 USDC entries, steward-reviewed results and participant refunds. Entries require a configured on-chain round and verified wallet flows. Local practice records alone cannot authorize settlement. Shared IPFS uploads request a separately labeled authorization signature.' },
       { title: 'Honest horizons', body: 'A Supporter token is future/planned only: not minted, available or purchased here. Future $2/$3 harder levels, voice recognition, pronunciation and dialect learning are not active curricula. All Duolingo clients and legacy watchers remain disabled.' },
-      { title: 'Your records · your choice', body: 'Three free practices per local day explore 1,095 procedural scenes. Wallet connection triggers read-only Ethereum ENS artwork lookup; own avatar/banner overrides stay local. Practice statistics and ungraded stories stay in this browser unless you explicitly publish practice history. Microphone starts only on Record. Native-speaker drafts become public CC BY 4.0 contributions only on Publish, and require steward review before voice rotation. Device speech is labeled synthesis. No live registry synchronization or speech-accuracy assessment.' }
+      { title: 'Your records · your choice', body: 'Three free practices per local day explore 1,095 procedural scenes. Wallet connection triggers read-only Ethereum ENS artwork lookup; own avatar/banner overrides stay local. Practice statistics and ungraded stories stay in this browser unless you explicitly publish practice history. Microphone starts only on Record. Whitelisted speakers and learners can publish public CC BY 4.0 WORD recordings with self-declared dialect/native status. In a configured hosted pilot these play immediately, visibly unreviewed; independent language review remains separate from clarity thumbs. Device speech is labeled synthesis. No live registry synchronization, cloning consent, speech-accuracy assessment or playback earnings.' }
     ]
   },
   links: [{ label: 'DLang source', url: 'https://github.com/TheJollyLaMa/DLang' }],
@@ -126,7 +131,12 @@ $('admin-open').onclick = () => openDialog('admin-dialog');
 $('history-open').onclick = () => { renderHistory(); openDialog('history-dialog'); };
 $('admin-config').textContent = JSON.stringify(config, null, 2);
 mountStorage({ ipfs, storage, openDialog });
-const audio = mountAudio({ ipfs, openDialog });
+const words = createWordClient({ signer: async () => {
+  const wallet = DecentHead.getWallet().snapshot();
+  if (!wallet.connected) throw Error('Connect a whitelisted wallet to sign a WORD contribution.');
+  return wallet.provider.getSigner(wallet.address);
+} });
+const audio = mountAudio({ ipfs, openDialog, words, getSceneContext, getBlocked: () => scoredPracticeBlocked });
 sensory = await mountSensory({ root: $('sensory-root'), audio, report,
   getBlocked: () => scoredPracticeBlocked || !landing.active });
 mountVoiceSeeding({ root: $('voice-seeding-root'), storage, report, getBlocked: () => scoredPracticeBlocked,
@@ -225,7 +235,7 @@ function bindObjects(container, scene, study) {
         }
         studyTarget = target.concept; renderLabels();
         const tag = $('study-languages').querySelector('input:checked')?.value || 'en';
-        void audio.play(tag, studyTarget);
+        void audio.playWord(tag, studyTarget, getSceneContext());
       } else {
         selectedTarget = target.id;
         $('answer-label').textContent = `Object ${scene.targets.indexOf(target) + 1} selected. Name what you see in your locked language.`;
@@ -257,8 +267,13 @@ function renderLabels() {
     box.className = 'label'; title.textContent = languageName(tag); word.textContent = label; word.lang = tag;
     const sound = document.createElement('button'); sound.type = 'button'; sound.className = 'word-audio';
     sound.append(word); sound.setAttribute('aria-label', `Hear ${label} in ${languageName(tag)}`);
-    sound.onclick = () => void audio.play(tag, studyTarget);
-    box.append(title, sound);
+    sound.onclick = () => void audio.playWord(tag, studyTarget, getSceneContext());
+    const correction = document.createElement('button'); correction.type = 'button';
+    correction.textContent = 'Fix pronunciation';
+    correction.setAttribute('aria-label', `Flag or record ${label} in ${languageName(tag)}`);
+    correction.disabled = scoredPracticeBlocked;
+    correction.onclick = () => void audio.openWord(tag, studyTarget, getSceneContext());
+    box.append(title, sound, correction);
     const entry = PACKS[tag][studyTarget];
     if (entry.reading) {
       const reading = document.createElement('small'); reading.lang = entry.readingTag; reading.textContent = entry.reading; reading.className = 'reading'; box.append(reading);
