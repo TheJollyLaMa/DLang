@@ -61,9 +61,9 @@
       "concept": "wind",
       "label": "wind sound cue",
       "status": "draft",
-      "path": "sensory/2026-11/2026-11-sounds-wind-v1.mp3",
+      "path": "sensory/2026-11/2026-11-sounds-wind-v2.mp3",
       "bytes": 33061,
-      "sha256": "1b284f72f2441be4b77ed3610e249cb7f0a26271e424467bd33417457e54330d",
+      "sha256": "876248054d75b234eb3be5e355d4e8e700c08f7a96aa0d0341cb08e07dda5ae2",
       "seconds": 2.037551,
       "source": {
         "provider": "ElevenLabs",
@@ -80,6 +80,23 @@
         "reportedCreditsUsed": 120,
         "usageObservedAt": "2026-11-13T01:12:56.819Z",
         "finalBillingVerified": false
+      },
+      "processing": {
+        "version": 2,
+        "originalPath": "sensory/2026-11/2026-11-sounds-wind-v1.mp3",
+        "originalSha256": "1b284f72f2441be4b77ed3610e249cb7f0a26271e424467bd33417457e54330d",
+        "method": "constant-gain",
+        "gainDb": 20.5,
+        "targetMeanDb": -30,
+        "maximumPeakDb": -3,
+        "before": {
+          "mean": -50.5,
+          "peak": -32.3
+        },
+        "after": {
+          "mean": -30.4,
+          "peak": -11.9
+        }
       }
     },
     {
@@ -88,9 +105,9 @@
       "concept": "rain",
       "label": "rain sound cue",
       "status": "draft",
-      "path": "sensory/2026-11/2026-11-sounds-rain-v1.mp3",
+      "path": "sensory/2026-11/2026-11-sounds-rain-v2.mp3",
       "bytes": 33061,
-      "sha256": "60b892548a72e62eb42d44425bf9e5d14a353ac8898fd0630a51f84995df29a9",
+      "sha256": "89d10133b929bc6334fd2e267f727e5bd48903c8068441f9a3c0ac6232c020ec",
       "seconds": 2.037551,
       "source": {
         "provider": "ElevenLabs",
@@ -107,6 +124,23 @@
         "reportedCreditsUsed": 120,
         "usageObservedAt": "2026-11-13T01:12:56.819Z",
         "finalBillingVerified": false
+      },
+      "processing": {
+        "version": 2,
+        "originalPath": "sensory/2026-11/2026-11-sounds-rain-v1.mp3",
+        "originalSha256": "60b892548a72e62eb42d44425bf9e5d14a353ac8898fd0630a51f84995df29a9",
+        "method": "constant-gain",
+        "gainDb": 14,
+        "targetMeanDb": -30,
+        "maximumPeakDb": -3,
+        "before": {
+          "mean": -44,
+          "peak": -26.7
+        },
+        "after": {
+          "mean": -30.5,
+          "peak": -13
+        }
       }
     },
     {

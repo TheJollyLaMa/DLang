@@ -19,6 +19,23 @@ hidden, no learning panel is open, scored practice is running, or private
 audio is active. Sound previews stop on speech/narration, recording, private
 audio, navigation, hidden tabs and scored practice. They never loop.
 
+### Weather loudness revision
+
+November 13 listening feedback accepted cat, bird, bell and surprise; wind
+and rain were barely audible. Their original mean levels measured -50.5 and
+-44.0 dBFS, before the player's unchanged 30% volume. Local constant-gain
+derivatives add 20.5 dB to wind and 14 dB to rain, reaching approximately
+-30 dBFS mean with peaks below -11 dBFS. No regeneration credits were used.
+The four accepted cues and global playback volume are unchanged.
+
+The catalog selects the weather `v2` derivatives while retaining the `v1`
+originals, hashes and processing measurements. Reproduce/check with
+`node scripts/normalize-weather-sounds.mjs` (requires ffmpeg); rerunning checks
+the existing derivative rather than increasing gain again. Browser tests
+decode both versions, verify the actual RMS improvement and peak headroom,
+and preserve the short duration. Human re-listening is still required before
+weather recognition approval; technical loudness checks are not that approval.
+
 ## What is saved
 
 - `public/dlang/sensory-catalog.json`: additive asset IDs, concept IDs, source

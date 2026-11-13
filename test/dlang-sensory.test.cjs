@@ -32,6 +32,49 @@ test('sensory catalog requires provenance, bounded media and explicit review bef
   assert.throws(() => validateSensoryCatalog({ version: 1, assets: [assets[0], assets[0]] }));
 });
 
+test('weather derivatives are audible without clipping and retain the original recordings', async t => {
+  const server = createServer();
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const browser = await chromium.launch();
+  t.after(async () => { await browser.close(); await new Promise(resolve => server.close(resolve)); });
+  const page = await browser.newPage();
+  await page.goto(`http://127.0.0.1:${server.address().port}/dlang.html`);
+  const catalog = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/dlang/sensory-catalog.json')));
+  const weather = catalog.assets.filter(asset => ['wind', 'rain'].includes(asset.concept));
+  assert.equal(weather.length, 2);
+  for (const asset of weather) {
+    assert.equal(asset.processing.version, 2);
+    const source = fs.readFileSync(path.join(__dirname, '../public/dlang', asset.processing.originalPath));
+    assert.equal(require('node:crypto').createHash('sha256').update(source).digest('hex'), asset.processing.originalSha256);
+    const levels = await page.evaluate(async asset => {
+      const context = new AudioContext();
+      async function measure(path) {
+        const response = await fetch(`/dlang/${path}`);
+        if (!response.ok) throw Error(`Media HTTP ${response.status}`);
+        const buffer = await context.decodeAudioData(await response.arrayBuffer());
+        let squareSum = 0, peak = 0, samples = 0;
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+          for (const sample of buffer.getChannelData(channel)) {
+            squareSum += sample * sample; peak = Math.max(peak, Math.abs(sample)); samples++;
+          }
+        }
+        return { rmsDb: 10 * Math.log10(squareSum / samples), peakDb: 20 * Math.log10(peak), duration: buffer.duration };
+      }
+      try { return { original: await measure(asset.processing.originalPath), normalized: await measure(asset.path) }; }
+      finally { await context.close(); }
+    }, asset);
+    assert.ok(Math.abs(levels.normalized.rmsDb + 30) <= 1, `${asset.concept}: ${JSON.stringify(levels)}`);
+    assert.ok(levels.normalized.peakDb <= -3, 'Decoded audio must retain at least 3 dB headroom');
+    assert.ok(levels.normalized.rmsDb + 20 * Math.log10(0.3) >= -42, 'Weather must be audible at the existing 30% player volume');
+    assert.ok(levels.normalized.rmsDb - levels.original.rmsDb >= (asset.concept === 'wind' ? 19 : 13));
+    assert.ok(Math.abs(levels.normalized.duration - levels.original.duration) < 0.1);
+  }
+  for (const asset of catalog.assets.filter(asset => ['cat', 'bird', 'bell', 'surprise'].includes(asset.concept) && asset.kind === 'sound')) {
+    assert.equal(asset.processing, undefined, 'Accepted cues must not be normalized');
+    assert.ok(asset.path.endsWith('-v1.mp3'));
+  }
+});
+
 test('contributor opt-in and withdrawal stay local, require signatures and never upload samples', async t => {
   const server = createServer();
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
