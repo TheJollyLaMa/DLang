@@ -14,6 +14,15 @@ The exact USDC allowance was consumed; existing learning pools' USDC balances,
 supplies and pilot-holder balances were verified unchanged against preflight.
 No contributor payout or human-play receipt is implied by funding.
 
+The hosted service was verified on November 14 against release
+`83ea6a8f3bf50ef543aedd4cad04a16ad12314c7`: the funding manifest and playback
+modules matched the release, `/api/voice-rewards` returned HTTP 200 with the
+verified $1 / 10,000 Ommm identity, and `/api/words` remained available.
+The separate reward ledger initializes on the existing `/var/data` disk;
+no signing key was added to the host. Before the funded window, status was
+inactive with zero completed credits and no enrollments or settlement.
+Release CI passed 126 application tests and 59 contract tests.
+
 **Approved window:** Monday **November 16, 2026 00:00** through Monday
 **November 23, 2026 00:00**, end exclusive, **America/New_York**.
 UTC boundaries are `2026-11-16T05:00:00Z` and `2026-11-23T05:00:00Z`.
