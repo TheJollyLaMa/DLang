@@ -75,6 +75,10 @@ contract Ommm is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         return totalSupply() + outstandingBudget;
     }
 
+    function funded() external view returns (bool) {
+        return committedSupply() != 0 && reserveAssets() != 0;
+    }
+
     /// @notice USDC needed to add `budget` without dropping the price more than maxDropBps.
     function requiredAssets(uint256 budget) public view returns (uint256) {
         uint256 supply = committedSupply();
