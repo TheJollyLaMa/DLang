@@ -6,7 +6,7 @@ export function compileOmmm() {
 }
 
 export function compileContract(name) {
-  if (!['OmmmReserve', 'OmmmStaircase', 'OmmmVoicePilot', 'DLangStaircaseTrial'].includes(name)) throw Error('Unsupported contract compilation target.');
+  if (!['Ommm', 'OmmmReserve', 'OmmmStaircase', 'OmmmVoicePilot', 'DLangStaircaseTrial'].includes(name)) throw Error('Unsupported contract compilation target.');
   const source = fs.readFileSync(new URL(`../contracts/dlang/${name}.sol`, import.meta.url), 'utf8');
   const input = {
     language: 'Solidity', sources: { [`${name}.sol`]: { content: source } },
