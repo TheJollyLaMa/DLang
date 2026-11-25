@@ -17,6 +17,8 @@ contract Ommm is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
 
     uint256 public constant BPS = 10_000;
     uint256 public constant MAX_DROP_BPS = 1_000;
+    /// @notice 100 USDC base units (6 decimals) per whole Ommm, i.e. $0.0001.
+    uint256 public constant INITIAL_PRICE = 100;
 
     struct Pool {
         uint256 budget;
@@ -26,8 +28,6 @@ contract Ommm is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     }
 
     IERC20 public immutable asset;
-    /// @notice USDC (6 decimals) per whole Ommm used only when nothing is committed yet.
-    uint256 public immutable initialPrice;
     uint256 public supplyCap;
     uint256 public maxDropBps = MAX_DROP_BPS;
     uint256 public outstandingBudget;
@@ -60,12 +60,11 @@ contract Ommm is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
         _;
     }
 
-    constructor(address usdc, address steward, uint256 cap, uint256 startPrice) ERC20("Ommm", "Ommm") Ownable(steward) {
-        if (usdc.code.length == 0 || IERC20Metadata(usdc).decimals() != 6 || cap == 0 || startPrice == 0)
+    constructor(address usdc, address steward, uint256 cap) ERC20("Ommm", "Ommm") Ownable(steward) {
+        if (usdc.code.length == 0 || IERC20Metadata(usdc).decimals() != 6 || cap == 0)
             revert InvalidConfiguration();
         asset = IERC20(usdc);
         supplyCap = cap;
-        initialPrice = startPrice;
     }
 
     function reserveAssets() public view returns (uint256) {
@@ -79,7 +78,7 @@ contract Ommm is ERC20, Ownable2Step, ReentrancyGuard, Pausable {
     /// @notice USDC needed to add `budget` without dropping the price more than maxDropBps.
     function requiredAssets(uint256 budget) public view returns (uint256) {
         uint256 supply = committedSupply();
-        if (supply == 0) return Math.mulDiv(budget, initialPrice, 1 ether, Math.Rounding.Ceil);
+        if (supply == 0) return Math.mulDiv(budget, INITIAL_PRICE, 1 ether, Math.Rounding.Ceil);
         uint256 reserve = reserveAssets();
         uint256 floor = Math.mulDiv(reserve * (BPS - maxDropBps), supply + budget, supply * BPS, Math.Rounding.Ceil);
         return floor > reserve ? floor - reserve : 0;

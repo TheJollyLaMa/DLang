@@ -7,8 +7,9 @@ import { verifyVoiceFunding, USDC } from '../services/voice-pool-verification.cj
 import { assertGasBudget, GAS_CAP, SETTLEMENT_RESERVE, verifyVoiceSettlement } from './voice-pilot.mjs';
 
 const artifact = compileContract('OmmmVoicePilot');
+const PILOT_TEST_CHAIN_TIME = new Date('2026-11-15T00:00:00.000Z');
 async function fixture(t) {
-  const f = await setup(t);
+  const f = await setup(t, { time: PILOT_TEST_CHAIN_TIME });
   await f.provider.send('evm_setAccountCode', [USDC, await f.provider.getCode(f.asset.target)]);
   const asset = new Contract(USDC, f.asset.interface, f.signers[0]);
   await mined(asset.mint(f.addresses[0], 1000000n));
@@ -79,7 +80,7 @@ test('launch gas guard reserves settlement within additional cap; native token i
   assert.doesNotThrow(() => assertGasBudget(0n, GAS_CAP - SETTLEMENT_RESERVE, SETTLEMENT_RESERVE));
   assert.throws(() => assertGasBudget(1n, GAS_CAP - SETTLEMENT_RESERVE, SETTLEMENT_RESERVE), /cap/);
   assert.throws(() => assertGasBudget(0n, 0n), /cap/);
-  const f = await setup(t);
+  const f = await setup(t, { time: PILOT_TEST_CHAIN_TIME });
   await assert.rejects(f.deploy(artifact, [f.asset.target, f.addresses[0]]));
   await f.provider.send('evm_setAccountCode', [USDC, await f.provider.getCode(f.asset.target)]);
   const prefunded = await f.deploy(artifact, [USDC, f.addresses[0]]);

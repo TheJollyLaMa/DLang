@@ -26,7 +26,6 @@ assert.deepEqual((output.errors || []).filter(error => error.severity === 'error
 const assetArtifact = output.contracts['Asset.sol'].Asset;
 const mined = async tx => (await tx).wait();
 const CAP = parseEther('1000000');
-const START = 100_000n; // $0.10 per Ommm
 
 async function setup(t) {
   const chain = ganache.provider({ logging: { quiet: true }, chain: { hardfork: 'shanghai', chainId: 8453 },
@@ -41,7 +40,7 @@ async function setup(t) {
     await c.waitForDeployment(); return c;
   };
   const asset = await deploy(assetArtifact.abi, `0x${assetArtifact.evm.bytecode.object}`);
-  const ommm = await deploy(artifact.abi, artifact.bytecode, [asset.target, owner, CAP, START]);
+  const ommm = await deploy(artifact.abi, artifact.bytecode, [asset.target, owner, CAP]);
   for (const [i, signer] of signers.entries()) {
     await mined(asset.mint(await signer.getAddress(), 1_000_000_000_000n));
     await mined(asset.connect(signer).approve(ommm.target, 1_000_000_000_000n));
@@ -52,15 +51,15 @@ async function setup(t) {
 
 test('first pool is priced at the start price; rewards mint within budget without moving the price', async t => {
   const f = await setup(t);
-  assert.equal(await f.ommm.requiredAssets(parseEther("4400")), 440_000_000n);
-  await mined(f.ommm.openPool(f.dlang, 'DLang learning', parseEther("4400"), 440_000_000n));
+  assert.equal(await f.ommm.requiredAssets(parseEther("4400")), 440_000n);
+  await mined(f.ommm.openPool(f.dlang, 'DLang learning', parseEther("4400"), 440_000n));
   assert.equal(await f.ommm.totalSupply(), 0n);
   assert.equal(await f.ommm.committedSupply(), parseEther('4400'));
   const before = await f.price();
   await mined(f.ommm.connect(f.signers[1]).reward(f.holder, parseEther('1'), id('level-1')));
   assert.equal(await f.ommm.balanceOf(f.holder), parseEther('1'));
   assert.equal(await f.price(), before);
-  assert.equal(await f.ommm.previewRedeem(parseEther('1')), 100_000n);
+  assert.equal(await f.ommm.previewRedeem(parseEther('1')), 100n);
   await assert.rejects(() => f.ommm.connect(f.signers[1]).reward(f.holder, parseEther('1'), id('level-1')));
   await assert.rejects(() => f.ommm.connect(f.signers[1]).reward(f.holder, parseEther('4400'), id('too-much')));
   await assert.rejects(() => f.ommm.connect(f.signers[2]).reward(f.holder, 1n, id('not-a-pool')));
@@ -73,7 +72,7 @@ test('a new pool must add enough USDC that the price drops by at most 10%', asyn
   const budget = parseEther('9000');
   const need = await f.ommm.requiredAssets(budget);
   // 0.9 * $100 * 10000/1000 - $100 = $800
-  assert.equal(need, 800_000_000n);
+  assert.equal(need, 800_000n);
   await assert.rejects(() => f.ommm.openPool(f.busking, 'DecentBusking', budget, need - 1n));
   await mined(f.ommm.openPool(f.busking, 'DecentBusking', budget, need));
   const after = await f.price();
@@ -97,9 +96,9 @@ test('redemption pays the committed-supply price and keeps unminted budgets back
   await mined(f.ommm.openPool(f.dlang, 'DLang', parseEther('100'), 10_000_000n));
   await mined(f.ommm.connect(f.signers[1]).reward(f.holder, parseEther('10'), id('r1')));
   const held = await f.asset.balanceOf(f.holder);
-  await mined(f.ommm.connect(f.signers[3]).redeem(parseEther('10'), 1_000_000n));
-  assert.equal(await f.asset.balanceOf(f.holder), held + 1_000_000n);
-  assert.equal(await f.ommm.reserveAssets(), 9_000_000n);
+  await mined(f.ommm.connect(f.signers[3]).redeem(parseEther('10'), 1_000n));
+  assert.equal(await f.asset.balanceOf(f.holder), held + 1_000n);
+  assert.equal(await f.ommm.reserveAssets(), 9_000n);
   assert.equal(await f.ommm.committedSupply(), parseEther('90'));
   await assert.rejects(() => f.ommm.connect(f.signers[3]).redeem(1n, 0n));
 });
@@ -110,10 +109,10 @@ test('closing a pool releases budget and raises the price; sponsors can fund', a
   await mined(f.ommm.connect(f.signers[1]).reward(f.holder, parseEther('10'), id('r1')));
   await mined(f.ommm.closePool(f.dlang));
   assert.equal(await f.ommm.committedSupply(), parseEther('10'));
-  assert.equal(await f.ommm.previewRedeem(parseEther('10')), 10_000_000n);
+  assert.equal(await f.ommm.previewRedeem(parseEther('10')), 10_000n);
   await assert.rejects(() => f.ommm.connect(f.signers[1]).reward(f.holder, 1n, id('r2')));
   await mined(f.ommm.connect(f.signers[4]).fund(5_000_000n));
-  assert.equal(await f.ommm.reserveAssets(), 15_000_000n);
+  assert.equal(await f.ommm.reserveAssets(), 5_010_000n);
   await mined(f.ommm.openPool(f.dlang, '', parseEther('5'), 10_000_000n));
   assert.equal(await f.ommm.remainingBudget(f.dlang), parseEther('5'));
 });
@@ -134,9 +133,10 @@ test('cap, pause, owner-only controls and transfers into the contract are enforc
 
 test('constructor rejects bad configuration', async t => {
   const f = await setup(t);
-  for (const args of [[ZeroAddress, f.owner, CAP, START], [f.asset.target, f.owner, 0n, START], [f.asset.target, f.owner, CAP, 0n], [f.ommm.target, f.owner, CAP, START]]) {
+  for (const args of [[ZeroAddress, f.owner, CAP], [f.asset.target, f.owner, 0n], [f.ommm.target, f.owner, CAP]]) {
     await assert.rejects(() => f.deploy(artifact.abi, artifact.bytecode, args));
   }
+  assert.equal(await f.ommm.INITIAL_PRICE(), 100n);
 });
 
 test('prototype recovery returns all backing and retires the token; can be disabled', async t => {
@@ -145,7 +145,7 @@ test('prototype recovery returns all backing and retires the token; can be disab
   await assert.rejects(() => f.ommm.connect(f.signers[1]).recoverPrototype(f.asset.target, f.dlang));
   const held = await f.asset.balanceOf(f.other);
   await mined(f.ommm.recoverPrototype(f.asset.target, f.other));
-  assert.equal(await f.asset.balanceOf(f.other), held + 10_000_000n);
+  assert.equal(await f.asset.balanceOf(f.other), held + 10_000n);
   assert.equal(await f.ommm.prototypeRetired(), true);
   await assert.rejects(() => f.ommm.connect(f.signers[1]).reward(f.holder, 1n, id('late')));
 
