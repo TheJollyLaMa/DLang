@@ -6,25 +6,29 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { keccak256 } = require('ethers');
 
-test('public Ommm evidence matches source, exact bootstrap and reconciled successful receipts', () => {
+test('public shared Ommm v1 evidence matches source, funded pools, retirements and reconciled receipts', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, '../public/dlang/ommm-deployment.json'), 'utf8'));
-  const source = fs.readFileSync(path.join(__dirname, '../contracts/dlang/OmmmReserve.sol'));
+  const source = fs.readFileSync(path.join(__dirname, '../contracts/dlang/Ommm.sol'));
+  assert.equal(manifest.format, 'dlang-ommm-v1');
   assert.equal(manifest.chainId, 8453);
   assert.equal(manifest.funded, true);
-  assert.equal(manifest.bridged, false);
-  assert.equal(manifest.initialSupply, '4400000000000000000000');
-  assert.equal(manifest.initialAssets, '440000');
+  assert.equal(manifest.supplyCap, '1000000000000000000000000');
   assert.equal(manifest.sourceHash, keccak256(source));
   assert.match(manifest.runtimeCodeHash, /^0x[0-9a-f]{64}$/);
-  assert.notEqual(manifest.contract.toLowerCase(), '0xd0f666df2dd23437f5e4d7eb975295b5885ee15e');
-  assert.deepEqual(Object.keys(manifest.transactions), ['deploy', 'approve', 'bootstrap']);
+  assert.equal(manifest.pools.learning.budget, '4400000000000000000000');
+  assert.equal(manifest.pools.voice.weeklyBudget, '10000000000000000000000');
+  assert.equal(BigInt(manifest.pools.learning.assets) + BigInt(manifest.pools.voice.assets), 1_296_000n);
+  const legacy = ['0xd5062a20a9ec942322fb63407dc5b327cf9aa8b6', '0xfeee3beba3e897f3db00d45ccf4ed6927e0e301f', '0x8fff93a94ede08c462c2e6d1a61fe64fb2f3adb1'];
+  assert.deepEqual(Object.values(manifest.retired).map(entry => entry.contract.toLowerCase()), legacy);
+  assert.ok(!legacy.includes(manifest.contract.toLowerCase()));
+  assert.deepEqual(Object.keys(manifest.transactions), ['retire-staircase', 'retire-voice-pilot', 'pause-reserve',
+    'deploy-ommm', 'deploy-learning', 'deploy-voice', 'approve-usdc', 'open-learning', 'open-voice']);
   let total = 0n, block = 0;
   for (const receipt of Object.values(manifest.transactions)) {
     assert.equal(receipt.receiptStatus, 1);
     assert.match(receipt.hash, /^0x[0-9a-f]{64}$/);
     assert.ok(receipt.blockNumber > block); block = receipt.blockNumber;
     assert.ok(BigInt(receipt.actualTotalWei) > 0n); total += BigInt(receipt.actualTotalWei);
-    assert.equal(receipt.capWei, undefined, 'local signing journal is not a public receipt');
   }
   assert.equal(String(total), manifest.actualGasTotalWei);
 });

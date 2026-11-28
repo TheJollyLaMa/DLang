@@ -1,5 +1,7 @@
 # One funded voice week
 
+> **Retired November 28, 2026.** The week had zero enrollments and zero plays (hosted settlement `carry-zero-plays`), so nobody was owed. The $1 USDC was recovered to the steward ([tx](https://basescan.org/tx/0x976c8561087ca7e035fa404e07811d6b294fb016fd58e09cebd443305927027b)). Replaced by the shared [Ommm v1](./Ommm-v1.md) at `0xD3244Ac3552e983bdf2b9DD5c0FE51410447b778`.
+
 ## Confirmed funding
 
 The separate pool is deployed at

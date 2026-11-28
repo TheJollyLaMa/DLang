@@ -87,5 +87,10 @@
     "paymentsEnabled": false,
     "prototypeRecovery": true
   },
-  "verifiedAt": "2026-11-12T19:10:48.708Z"
+  "verifiedAt": "2026-11-12T19:10:48.708Z",
+  "retired": {
+    "at": "2026-11-28",
+    "successor": "0xD3244Ac3552e983bdf2b9DD5c0FE51410447b778",
+    "tx": "0xff5a27efc9634e607e3a6363ea946ad07526fa2912db0d3aa0a7286a00976737"
+  }
 }

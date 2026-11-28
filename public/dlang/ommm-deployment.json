@@ -1,41 +1,111 @@
 {
-  "format": "dlang-ommm-reserve",
+  "format": "dlang-ommm-v1",
   "version": 1,
   "chainId": 8453,
-  "contract": "0xD5062a20A9eC942322fb63407DC5B327cF9AA8b6",
+  "contract": "0xD3244Ac3552e983bdf2b9DD5c0FE51410447b778",
   "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   "steward": "0xcAeEd8422fB5682C298B7F0971906d446fFd4e7a",
   "name": "Ommm",
   "symbol": "Ommm",
   "decimals": 18,
   "funded": true,
-  "initialSupply": "4400000000000000000000",
-  "initialAssets": "440000",
-  "runtimeCodeHash": "0x4fc3361be8f02f31ea8a3f5177f8cc35fe918049331313e29dddb45436257309",
-  "sourceHash": "0xf5d7b3ac7d6e95aa8a343d69fac2cac4c3fee47a810277aea2411fde666839b6",
+  "supplyCap": "1000000000000000000000000",
+  "runtimeCodeHash": "0xda00d9fdfd58712d57ffed2d4381ce8a5da1c7720dccd2913d83b0cc1bcd750a",
+  "initialPrice": "100",
+  "maxDropBps": 1000,
+  "sourceHash": "0x0b7e8242c53f4fc20e839cccbfe5d2a2b877cc4c35c9e5361083a7130e59cb02",
   "compiler": "0.8.30+commit.73712a01.Emscripten.clang",
-  "polygonReference": "0x1a74f818F1b42dBFcE449c7Fa93B107C6e4A2433",
-  "bridged": false,
-  "transactions": {
-    "deploy": {
-      "hash": "0x7353ccaf155e3c5e248dc083e634e4a567ec4bfbb4fc61bb2d5aac0a5c02f512",
-      "actualTotalWei": "10952987849597",
-      "blockNumber": 56550372,
-      "receiptStatus": 1
+  "prototypeRecovery": true,
+  "pools": {
+    "learning": {
+      "contract": "0x3B565e005e2d411e252510eAF367cbB1B1FeC5FA",
+      "label": "DLang learning",
+      "budget": "4400000000000000000000",
+      "assets": "440000",
+      "runtimeCodeHash": "0xfa35ff916b9235af33bf16721dd65220bc72dd4133deba4ef490c9f1cdd3af1a"
     },
-    "approve": {
-      "hash": "0xa9461837282d3404d90d8fdc6338f7ca962e31e8f29092199210690818e450d2",
-      "actualTotalWei": "340031423607",
-      "blockNumber": 56552044,
-      "receiptStatus": 1
-    },
-    "bootstrap": {
-      "hash": "0xb9c5d1648265848b20cb094ef2836a4d314e17d33e7846657fe6d4873b21c1d9",
-      "actualTotalWei": "594112817831",
-      "blockNumber": 56552394,
-      "receiptStatus": 1
+    "voice": {
+      "contract": "0x9c700aD2bDA94F7a604cd93FEC179088259547c8",
+      "label": "DLang voice",
+      "budget": "10000000000000000000000",
+      "weeklyBudget": "10000000000000000000000",
+      "assets": "856000",
+      "runtimeCodeHash": "0xa1ccc02f95f28441ba8f3888a7695cd48a2ec1ccbf9f775bec1be832c2e75515"
     }
   },
-  "actualGasTotalWei": "11887132091035",
-  "verifiedAt": "2026-11-12T16:27:43.152Z"
+  "retired": {
+    "reserve": {
+      "contract": "0xD5062a20A9eC942322fb63407DC5B327cF9AA8b6",
+      "action": "awards paused; no recovery function, 0.44 USDC remains locked, no outside holders",
+      "tx": "0x1f3696acc481f2d72ed3e86f2bab9c310dc374819024c50b5fdd932ba04c6d0b"
+    },
+    "staircase": {
+      "contract": "0xFEEe3bEBa3e897f3db00D45CCF4Ed6927e0e301f",
+      "action": "prototype recovered to steward",
+      "tx": "0xff5a27efc9634e607e3a6363ea946ad07526fa2912db0d3aa0a7286a00976737"
+    },
+    "voicePilot": {
+      "contract": "0x8fff93A94eDe08c462C2e6D1A61FE64Fb2F3aDB1",
+      "action": "prototype recovered to steward; week Nov 16–23 had zero plays",
+      "tx": "0x976c8561087ca7e035fa404e07811d6b294fb016fd58e09cebd443305927027b"
+    }
+  },
+  "transactions": {
+    "retire-staircase": {
+      "hash": "0xff5a27efc9634e607e3a6363ea946ad07526fa2912db0d3aa0a7286a00976737",
+      "blockNumber": 63319502,
+      "receiptStatus": 1,
+      "actualTotalWei": "489817656067"
+    },
+    "retire-voice-pilot": {
+      "hash": "0x976c8561087ca7e035fa404e07811d6b294fb016fd58e09cebd443305927027b",
+      "blockNumber": 63319945,
+      "receiptStatus": 1,
+      "actualTotalWei": "387638670337"
+    },
+    "pause-reserve": {
+      "hash": "0x1f3696acc481f2d72ed3e86f2bab9c310dc374819024c50b5fdd932ba04c6d0b",
+      "blockNumber": 63320043,
+      "receiptStatus": 1,
+      "actualTotalWei": "179240192760"
+    },
+    "deploy-ommm": {
+      "hash": "0xb3fc55920cad18881e31fd45dc30185b95ddf9ec729dc2d30f9248cefd366d49",
+      "blockNumber": 63320064,
+      "receiptStatus": 1,
+      "actualTotalWei": "14502142925532"
+    },
+    "deploy-learning": {
+      "hash": "0x664c8ec36529eb7ccf5e9e0100f6740a84b9f29833f30952186fd471e5294eb7",
+      "blockNumber": 63320085,
+      "receiptStatus": 1,
+      "actualTotalWei": "3614473742600"
+    },
+    "deploy-voice": {
+      "hash": "0x1ebe4dece495e7d2b67fc7af1beadf480e0115a9d3afc730ff160dcad88c89bb",
+      "blockNumber": 63320103,
+      "receiptStatus": 1,
+      "actualTotalWei": "5396109570997"
+    },
+    "approve-usdc": {
+      "hash": "0x39023941d57a6ffbddc248e8110e14d43bf1cf185486e334a492da2ced6ec4f1",
+      "blockNumber": 63320111,
+      "receiptStatus": 1,
+      "actualTotalWei": "333055404246"
+    },
+    "open-learning": {
+      "hash": "0xae703006ba053784e400f1701ca13a70575be38b81fa5e4c5d65baa58a77ef81",
+      "blockNumber": 63320133,
+      "receiptStatus": 1,
+      "actualTotalWei": "1101595641226"
+    },
+    "open-voice": {
+      "hash": "0xfc8cbbbd180d81c640ae2f4450b558fd04e191fc891aafd0be213ab066d2c289",
+      "blockNumber": 63320137,
+      "receiptStatus": 1,
+      "actualTotalWei": "893443793387"
+    }
+  },
+  "actualGasTotalWei": "26897517597152",
+  "verifiedAt": "2026-11-28T08:26:47.727Z"
 }

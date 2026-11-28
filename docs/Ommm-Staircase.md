@@ -1,5 +1,7 @@
 # Staircase successors: deployed prototype
 
+> **Retired November 28, 2026.** The OmmmStaircase USDC was recovered to the steward ([tx](https://basescan.org/tx/0xff5a27efc9634e607e3a6363ea946ad07526fa2912db0d3aa0a7286a00976737)); it had no outside holders. Replaced by the shared [Ommm v1](./Ommm-v1.md) at `0xD3244Ac3552e983bdf2b9DD5c0FE51410447b778`.
+
 These are **new, deployed prototype contracts**, not changes to the original reserve:
 
 - [OmmmStaircase](../contracts/dlang/OmmmStaircase.sol): reserve-backed Ommm,

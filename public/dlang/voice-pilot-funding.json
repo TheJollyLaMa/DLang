@@ -13,5 +13,10 @@
   "runtimeHash": "0xc8ac0a13fb23447af23053794701452f6fbf2c4159bb2bc524bc03b8c3aeb12f",
   "additionalGasCapWei": "1000000000000000",
   "actualFeeWei": "19001540707905",
-  "recurring": false
+  "recurring": false,
+  "retired": {
+    "at": "2026-11-28",
+    "successor": "0xD3244Ac3552e983bdf2b9DD5c0FE51410447b778",
+    "tx": "0x976c8561087ca7e035fa404e07811d6b294fb016fd58e09cebd443305927027b"
+  }
 }
