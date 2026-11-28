@@ -1,5 +1,7 @@
 # Ommm on Base
 
+> **Retired November 28, 2026.** Awards paused ([tx](https://basescan.org/tx/0x1f3696acc481f2d72ed3e86f2bab9c310dc374819024c50b5fdd932ba04c6d0b)). This contract has no recovery function, so its 0.44 USDC stays locked; all 4,400 tokens are held by the contract itself, with no outside holders. Replaced by the shared [Ommm v1](./Ommm-v1.md) at `0xD3244Ac3552e983bdf2b9DD5c0FE51410447b778`.
+
 The Base ERC-20 is also the reserve-pool token. It is not an AMM/LP token or a
 bridge to Polygon Ommm. Deployment receipts, runtime hash and initial funding
 are recorded in [the public manifest](../public/dlang/ommm-deployment.json).

@@ -52,9 +52,9 @@ contract Pool {
 assert.deepEqual((output.errors || []).filter(error => error.severity === 'error'), []);
 
 export const mined = async tx => (await tx).wait();
-export async function setup(t, { count = 4, bootstrap = true, mockPool = false } = {}) {
+export async function setup(t, { count = 4, bootstrap = true, mockPool = false, time } = {}) {
   const chain = ganache.provider({
-    logging: { quiet: true }, chain: { hardfork: 'shanghai', chainId: 8453 },
+    logging: { quiet: true }, chain: { hardfork: 'shanghai', chainId: 8453, ...(time ? { time } : {}) },
     wallet: { deterministic: true, totalAccounts: 10 }
   });
   const provider = new BrowserProvider(chain, undefined, { cacheTimeout: -1 }); provider.pollingInterval = 10;

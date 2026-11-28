@@ -2,6 +2,7 @@ export const BASE_USDC = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
 export const OMMM_ABI = [
   'function asset() view returns(address)', 'function funded() view returns(bool)',
   'function balanceOf(address) view returns(uint256)', 'function totalSupply() view returns(uint256)',
+  'function committedSupply() view returns(uint256)',
   'function reserveAssets() view returns(uint256)', 'function previewRedeem(uint256) view returns(uint256)',
   'function redeem(uint256 units,uint256 minimumAssets)',
   'event Redeemed(address indexed steward,uint256 units,uint256 assets)',
@@ -25,6 +26,7 @@ const addressPattern = /^0x[0-9a-fA-F]{40}$/;
 const hashPattern = /^0x[0-9a-fA-F]{64}$/;
 const sameAddress = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toLowerCase() === b.toLowerCase();
 const isSuccessor = config => config?.format === 'dlang-staircase-deployment';
+const isSharedOmmm = config => config?.format === 'dlang-ommm-v1';
 const PROTOTYPE_RISK = 'Prototype risk: administrator can recover all staircase USDC, including holder backing and dividends, permanently retiring payouts. Weekly administrator can also recover all stakes, refunds and credits, permanently retiring weekly payouts. Historical ledgers remain but do not authorize payouts after retirement. Group-custody handoff requested: it requires explicit on-chain authority transfers, not merely a member roster. Connect and refresh to verify current recovery and retirement state.';
 
 export function validateOmmmDeployment(config) {
@@ -79,10 +81,10 @@ export async function connectOmmm(config, wallet) {
     throw Error('Ommm runtime does not match the confirmed deployment.');
   }
   const pool = new ethers.Contract(config.contract, successor ? STAIRCASE_ABI : OMMM_ABI, provider);
-  const [asset, funded, balance, reserve, supply] = await Promise.all([
-    pool.asset(options), pool.funded(options), pool.balanceOf(wallet.address, options),
-    pool.reserveAssets(options), pool.totalSupply(options)
+  const [asset, funded, balance, reserve] = await Promise.all([
+    pool.asset(options), pool.funded(options), pool.balanceOf(wallet.address, options), pool.reserveAssets(options)
   ]);
+  const supply = await (isSharedOmmm(config) ? pool.committedSupply(options) : pool.totalSupply(options));
   if (asset.toLowerCase() !== BASE_USDC.toLowerCase() || (!funded && !successor)) throw Error('Ommm reserve asset or funding check failed.');
   let staircase = {};
   if (successor) {
